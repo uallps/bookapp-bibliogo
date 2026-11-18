@@ -6,7 +6,7 @@ import Observation
 @Observable
 final class BookListViewModel {
     /// Libros de ejemplo, para la primera vez que se abre la app.
-    private static let dune = Book(title: "Dune", author: "Frank Herbert")
+    private static let dune  = Book(title: "Dune", author: "Frank Herbert")
     private static let junco = Book(title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
     private static let klara = Book(title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
 
@@ -20,6 +20,11 @@ final class BookListViewModel {
     /// clase @Observable; sin el trait Progreso se queda vacía y no se guarda.
     var progress: [ReadingProgress] = BookListViewModel.sampleProgress {
         didSet { saveProgress() }
+    }
+
+    /// F2 Notas y citas: lista global de notas enlazadas por bookID. Se guarda aparte.
+    var notes: [BookNote] = [] {
+        didSet { saveNotes() }
     }
 
 #if Progreso
@@ -56,6 +61,11 @@ final class BookListViewModel {
             print("No se ha cargado el progreso: \(error)")
         }
 #endif
+        do {
+            notes = try await storageProvider.loadNotes()
+        } catch {
+            print("No se han cargado las notas: \(error)")
+        }
     }
 
     /// Pasa el libro al estado siguiente: Pendiente → Leyendo → Terminado → Pendiente.
@@ -73,6 +83,7 @@ final class BookListViewModel {
 #if Progreso
         progress.removeAll { $0.bookID == id }
 #endif
+        notes.removeAll { $0.bookID == id }
     }
 
     /// El libro con ese id, si sigue en la lista.
@@ -102,6 +113,19 @@ final class BookListViewModel {
     }
 #endif
 
+    /// Las notas del libro con ese id.
+    func notes(for bookID: UUID) -> [BookNote] {
+        notes.filter { $0.bookID == bookID }
+    }
+
+    /// Reemplaza todas las notas de un libro de golpe (lo llama el detalle via Binding).
+    func updateNotes(_ newNotes: [BookNote], for bookID: UUID) {
+        notes.removeAll { $0.bookID == bookID }
+        notes.append(contentsOf: newNotes)
+    }
+
+    // MARK: - Guardado en segundo plano
+
     /// Guarda la lista completa en segundo plano. Aquí `Task` es la tarea asíncrona
     /// de Swift; en TaskApp hay que escribir `_Concurrency.Task` porque su modelo
     /// se llama igual, pero en BookApp no hay ese choque de nombres.
@@ -127,5 +151,16 @@ final class BookListViewModel {
             }
         }
 #endif
+    }
+
+    private func saveNotes() {
+        let notes = notes
+        Task {
+            do {
+                try await storageProvider.saveNotes(notes: notes)
+            } catch {
+                print("No se han guardado las notas: \(error)")
+            }
+        }
     }
 }

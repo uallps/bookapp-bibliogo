@@ -6,6 +6,8 @@ struct BookDetailView: View {
     @Binding var book: Book
     /// F1 Progreso: nil en el producto sin el trait Progreso.
     let progress: Binding<ReadingProgress>?
+    /// F2 Notas y citas: notas de este libro.
+    @Binding var notes: [BookNote]
 
     var body: some View {
         Form {
@@ -21,6 +23,7 @@ struct BookDetailView: View {
                 ProgressSection(progress: progress)
             }
 #endif
+            NotesSection(notes: $notes, bookID: book.id)
         }
         .navigationTitle(book.title)
     }

@@ -55,3 +55,21 @@ extension ReadingProgress {
     }
 }
 #endif
+
+extension NoteKind {
+    /// Icono que identifica visualmente el tipo de anotación.
+    var systemImage: String {
+        switch self {
+        case .note:  return "note.text"
+        case .quote: return "quote.opening"
+        }
+    }
+
+    /// Color distintivo para notas y citas.
+    var color: Color {
+        switch self {
+        case .note:  return .blue
+        case .quote: return .purple
+        }
+    }
+}
