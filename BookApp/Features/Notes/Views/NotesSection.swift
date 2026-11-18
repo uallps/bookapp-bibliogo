@@ -54,9 +54,14 @@ private struct NoteRowView: View {
             Label(note.kind.rawValue, systemImage: note.kind.systemImage)
                 .bookCaption()
 
+#if !canImport(SwiftOpenUI)
             TextField(note.kind == .quote ? "Texto de la cita…" : "Escribe tu nota…",
                       text: $note.text, axis: .vertical)
                 .lineLimit(3...6)
+#else
+            TextField(note.kind == .quote ? "Texto de la cita…" : "Escribe tu nota…",
+                      text: $note.text)
+#endif
 
             pageField
         }
@@ -67,11 +72,21 @@ private struct NoteRowView: View {
         HStack {
             Image(systemName: "book.pages")
                 .bookCaption()
-            TextField("Página (opcional)", value: $note.page, format: .number)
+            TextField("Página (opcional)", text: pageBinding)
                 .bookCaption()
 #if os(iOS)
                 .keyboardType(.numberPad)
 #endif
         }
+    }
+
+    private var pageBinding: Binding<String> {
+        Binding(
+            get: { note.page.map(String.init) ?? "" },
+            set: { newValue in
+                let digits = newValue.filter { $0.isNumber }
+                note.page = digits.isEmpty ? nil : Int(digits)
+            }
+        )
     }
 }
