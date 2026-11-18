@@ -23,7 +23,11 @@ struct BookListView: View {
 
     /// Una fila: enlace al detalle del libro, con menú contextual para borrarlo.
     private func bookRow(book: Book) -> some View {
-        NavigationLink(destination: BookDetailView(book: binding(for: book), progress: progressBinding(for: book))) {
+        NavigationLink(destination: BookDetailView(
+            book: binding(for: book),
+            progress: progressBinding(for: book),
+            notes: notesBinding(for: book)
+        )) {
             BookRowView(
                 book: book,
                 progress: progress(for: book),
@@ -68,5 +72,13 @@ struct BookListView: View {
 #else
         return nil
 #endif
+    }
+
+    /// F2 Notas y citas: enlace a las notas del libro.
+    private func notesBinding(for book: Book) -> Binding<[BookNote]> {
+        Binding(
+            get: { viewModel.notes(for: book.id) },
+            set: { viewModel.updateNotes($0, for: book.id) }
+        )
     }
 }

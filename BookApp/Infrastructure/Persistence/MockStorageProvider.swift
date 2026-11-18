@@ -24,4 +24,14 @@ final class MockStorageProvider: StorageProvider {
         storedProgress = progress
     }
 #endif
+
+    private var storedNotes: [BookNote] = []
+
+    func loadNotes() async throws -> [BookNote] {
+        storedNotes
+    }
+
+    func saveNotes(notes: [BookNote]) async throws {
+        storedNotes = notes
+    }
 }

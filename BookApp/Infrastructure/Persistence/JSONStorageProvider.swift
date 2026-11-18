@@ -6,6 +6,7 @@ final class JSONStorageProvider: StorageProvider {
 #if Progreso
     private let progressURL: URL
 #endif
+    private let notesURL: URL
 
     init(filename: String = "books.json") {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -13,6 +14,7 @@ final class JSONStorageProvider: StorageProvider {
 #if Progreso
         progressURL = documents.appendingPathComponent("progress.json")
 #endif
+        notesURL = documents.appendingPathComponent("notes.json")
     }
 
     func loadBooks() async throws -> [Book] {
@@ -34,6 +36,15 @@ final class JSONStorageProvider: StorageProvider {
         try write(JSONEncoder().encode(progress), to: progressURL)
     }
 #endif
+
+    func loadNotes() async throws -> [BookNote] {
+        let data = try Data(contentsOf: notesURL)
+        return try JSONDecoder().decode([BookNote].self, from: data)
+    }
+
+    func saveNotes(notes: [BookNote]) async throws {
+        try write(JSONEncoder().encode(notes), to: notesURL)
+    }
 
     private func write(_ data: Data, to url: URL) throws {
         // La carpeta Documentos no existe en todos los sistemas (por ejemplo, un Linux mínimo).

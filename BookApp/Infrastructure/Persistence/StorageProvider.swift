@@ -9,4 +9,8 @@ protocol StorageProvider {
     func loadProgress() async throws -> [ReadingProgress]
     func saveProgress(progress: [ReadingProgress]) async throws
 #endif
+
+    /// F2 Notas y citas: se guarda aparte de los libros, enlazadas por bookID.
+    func loadNotes() async throws -> [BookNote]
+    func saveNotes(notes: [BookNote]) async throws
 }

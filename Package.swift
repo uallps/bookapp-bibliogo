@@ -13,10 +13,11 @@ let backend: Target.Dependency? = nil
 
 let package = Package(
     name: "BookApp",
-    // Productos de la línea: cada trait activo es una variable de compilación (#if Progreso).
-    // En Xcode, el mismo papel lo cumple el target «BookApp Progreso».
+    // Productos de la línea: cada trait activo es una variable de compilación (#if Progreso, #if Notas).
+    // En Xcode, el mismo papel lo cumple el target «BookApp Progreso» o «BookApp Notas».
     traits: [
         .trait(name: "Progreso", description: "Característica opcional F1: progreso de lectura"),
+        .trait(name: "Notas",    description: "Característica opcional F2: notas y citas de cada libro"),
     ],
     dependencies: [
         .package(url: "https://github.com/uallps/SwiftOpenUI.git", branch: "uallps"),
