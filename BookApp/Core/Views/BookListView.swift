@@ -8,17 +8,11 @@ struct BookListView: View {
     var body: some View {
         NavigationStack {
             List {
-                if config.showStatistics {
-                    StatisticsSection(statistics: viewModel.statistics)
-                }
                 ForEach(viewModel.books) { book in
                     bookRow(book: book)
                 }
             }
             .toolbar {
-                NavigationLink(destination: StatisticsView(statistics: viewModel.statistics)) {
-                    Label("Estadísticas", systemImage: "checklist")
-                }
                 Button("Añadir libro") {
                     viewModel.addBook()
                 }

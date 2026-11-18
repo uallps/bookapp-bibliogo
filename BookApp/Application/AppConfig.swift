@@ -14,10 +14,6 @@ final class AppConfig {
     var showProgress: Bool {
         didSet { store(showProgress, forKey: "showProgress") }
     }
-    /// F5 Estadísticas: decide si se muestra el resumen de estadísticas en la biblioteca.
-    var showStatistics: Bool {
-        didSet { store(showStatistics, forKey: "showStatistics") }
-    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -25,7 +21,6 @@ final class AppConfig {
         self.defaults = defaults
         showAuthors = defaults.object(forKey: "showAuthors") as? Bool ?? true
         showProgress = defaults.object(forKey: "showProgress") as? Bool ?? true
-        showStatistics = defaults.object(forKey: "showStatistics") as? Bool ?? true
     }
 
     private func store(_ value: Bool, forKey key: String) {
