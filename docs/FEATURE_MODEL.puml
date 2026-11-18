@@ -1,0 +1,64 @@
+@startuml
+title BookApp (BiblioGo) — Diagrama de características
+
+skinparam monochrome true
+top to bottom direction
+
+rectangle "BookApp" as Root
+
+' ---------- Núcleo obligatorio ----------
+rectangle "Biblioteca (Core)" as Core
+rectangle "Título" as Title
+rectangle "Estado de lectura" as Status
+rectangle "Gestión de biblioteca\n(alta, consulta, edición,\ncambio de estado, eliminación)" as Manage
+rectangle "Persistencia local" as Storage
+
+Root --@ Core
+Core --@ Title
+Core --@ Status
+Core --@ Manage
+Core --@ Storage
+
+' ---------- Características comunes F1–F5 ----------
+rectangle "Progreso (F1)" as F1
+rectangle "Notas y citas (F2)" as F2
+rectangle "Categorías (F3)" as F3
+rectangle "Valoraciones y reseñas (F4)" as F4
+rectangle "Estadísticas (F5)" as F5
+
+Root --o F1
+Root --o F2
+Root --o F3
+Root --o F4
+Root --o F5
+
+' ---------- Características originales O1–O5 ----------
+rectangle "Sugerencia de\npróxima lectura (O1)" as O1
+rectangle "Aleatoria" as O1a
+rectangle "Por tiempo y extensión" as O1b
+rectangle "Búsqueda en\nOpen Library (O2)" as O2
+rectangle "Objetivo anual (O3)" as O3
+rectangle "Préstamo de libros (O4)" as O4
+rectangle "Exportación (O5)" as O5
+rectangle "CSV" as O5a
+rectangle "Markdown" as O5b
+
+Root --o O1
+Root --o O2
+Root --o O3
+Root --o O4
+Root --o O5
+
+interface EstrategiaSugerencia as "XOR" #black
+O1 -- EstrategiaSugerencia
+EstrategiaSugerencia -- O1a
+EstrategiaSugerencia -- O1b
+
+interface FormatoExportacion as "OR" #black
+O5 -- FormatoExportacion
+FormatoExportacion -- O5a
+FormatoExportacion -- O5b
+
+' ---------- Restricciones cruzadas ----------
+O1b ..> F1 : requires
+@enduml
