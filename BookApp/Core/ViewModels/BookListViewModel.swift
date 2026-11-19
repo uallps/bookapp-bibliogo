@@ -27,6 +27,18 @@ final class BookListViewModel {
         didSet { saveNotes() }
     }
 
+    /// F4 Valoraciones y reseñas: lista global de valoraciones enlazadas por bookID. Se guarda aparte.
+    var reviews: [BookReview] = BookListViewModel.sampleReviews {
+        didSet { saveReviews() }
+    }
+
+    private static let sampleReviews = [
+        BookReview(bookID: dune.id, userName: "Elena Vega", rating: 5, comment: "Una obra maestra de la ciencia ficción. El universo es increíblemente detallado.", isUserReview: false),
+        BookReview(bookID: dune.id, userName: "Marcos S.", rating: 4, comment: "Gran historia y personajes, aunque a veces el ritmo es algo lento.", isUserReview: false),
+        BookReview(bookID: junco.id, userName: "Laura Gómez", rating: 5, comment: "Fascinante recorrido por la historia de los libros en la antigüedad.", isUserReview: false),
+        BookReview(bookID: klara.id, userName: "David R.", rating: 4, comment: "Una historia conmovedora sobre la inteligencia artificial y el amor.", isUserReview: false),
+    ]
+
     /// F5 Estadísticas: recuento total y por estado calculado a partir de los libros actuales.
     var statistics: BookStatistics {
         BookStatistics(books: books)
@@ -71,6 +83,12 @@ final class BookListViewModel {
         } catch {
             print("No se han cargado las notas: \(error)")
         }
+        do {
+            let loaded = try await storageProvider.loadReviews()
+            reviews = loaded.isEmpty ? Self.sampleReviews : loaded
+        } catch {
+            print("No se han cargado las valoraciones: \(error)")
+        }
     }
 
     /// Pasa el libro al estado siguiente: Pendiente → Leyendo → Terminado → Pendiente.
@@ -89,6 +107,7 @@ final class BookListViewModel {
         progress.removeAll { $0.bookID == id }
 #endif
         notes.removeAll { $0.bookID == id }
+        reviews.removeAll { $0.bookID == id }
     }
 
     /// El libro con ese id, si sigue en la lista.
@@ -129,6 +148,25 @@ final class BookListViewModel {
         notes.append(contentsOf: newNotes)
     }
 
+    /// Las valoraciones del libro con ese id.
+    func reviews(for bookID: UUID) -> [BookReview] {
+        reviews.filter { $0.bookID == bookID }
+    }
+
+    /// Valoración media del libro (1.0 - 5.0), o nil si no tiene valoraciones.
+    func averageRating(for bookID: UUID) -> Double? {
+        let bookReviews = reviews(for: bookID)
+        guard !bookReviews.isEmpty else { return nil }
+        let total = bookReviews.reduce(0) { $0 + $1.rating }
+        return Double(total) / Double(bookReviews.count)
+    }
+
+    /// Reemplaza todas las valoraciones de un libro de golpe (lo llama el detalle via Binding).
+    func updateReviews(_ newReviews: [BookReview], for bookID: UUID) {
+        reviews.removeAll { $0.bookID == bookID }
+        reviews.append(contentsOf: newReviews)
+    }
+
     // MARK: - Guardado en segundo plano
 
     /// Guarda la lista completa en segundo plano. Aquí `Task` es la tarea asíncrona
@@ -165,6 +203,17 @@ final class BookListViewModel {
                 try await storageProvider.saveNotes(notes: notes)
             } catch {
                 print("No se han guardado las notas: \(error)")
+            }
+        }
+    }
+
+    private func saveReviews() {
+        let reviews = reviews
+        Task {
+            do {
+                try await storageProvider.saveReviews(reviews: reviews)
+            } catch {
+                print("No se han guardado las valoraciones: \(error)")
             }
         }
     }

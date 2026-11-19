@@ -12,6 +12,7 @@ struct SettingsView: View {
 #if Progreso
                 Toggle("Mostrar progreso de lectura", isOn: $config.showProgress)
 #endif
+                Toggle("Mostrar valoraciones", isOn: $config.showRatings)
             }
         }
         .navigationTitle("Ajustes")
