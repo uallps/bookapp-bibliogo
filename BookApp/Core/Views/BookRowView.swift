@@ -26,12 +26,10 @@ struct BookRowView: View {
                 }
                 Text(book.status.rawValue)
                     .bookCaption(color: book.status.color)
-#if Progreso
                 if showProgress, let progress {
                     Text(progressText(progress))
                         .bookCaption(color: progress.color)
                 }
-#endif
                 if showRatings, let average = averageRating, reviewsCount > 0 {
                     HStack(spacing: 3) {
                         Image(systemName: "star.fill")

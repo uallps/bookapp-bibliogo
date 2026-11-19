@@ -13,7 +13,6 @@ final class MockStorageProvider: StorageProvider {
         storedBooks = books
     }
 
-#if Progreso
     private var storedProgress: [ReadingProgress] = []
 
     func loadProgress() async throws -> [ReadingProgress] {
@@ -23,7 +22,6 @@ final class MockStorageProvider: StorageProvider {
     func saveProgress(progress: [ReadingProgress]) async throws {
         storedProgress = progress
     }
-#endif
 
     private var storedNotes: [BookNote] = []
 
