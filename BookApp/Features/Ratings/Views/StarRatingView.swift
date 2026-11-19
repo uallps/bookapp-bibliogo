@@ -7,7 +7,7 @@ struct StarRatingView: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(1...maxRating, id: \.self) { star in
+            ForEach(1..<(maxRating + 1), id: \.self) { star in
                 Button {
                     rating = star
                 } label: {
@@ -28,7 +28,7 @@ struct StaticStarRatingView: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(1...maxRating, id: \.self) { star in
+            ForEach(1..<(maxRating + 1), id: \.self) { star in
                 Image(systemName: star <= rating ? "star.fill" : "star")
                     .foregroundColor(star <= rating ? .orange : .secondary)
                     .font(.caption)
