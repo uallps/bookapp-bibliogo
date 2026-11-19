@@ -34,4 +34,14 @@ final class MockStorageProvider: StorageProvider {
     func saveNotes(notes: [BookNote]) async throws {
         storedNotes = notes
     }
+
+    private var storedReviews: [BookReview] = []
+
+    func loadReviews() async throws -> [BookReview] {
+        storedReviews
+    }
+
+    func saveReviews(reviews: [BookReview]) async throws {
+        storedReviews = reviews
+    }
 }

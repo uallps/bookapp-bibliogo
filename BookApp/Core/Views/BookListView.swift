@@ -26,13 +26,17 @@ struct BookListView: View {
         NavigationLink(destination: BookDetailView(
             book: binding(for: book),
             progress: progressBinding(for: book),
-            notes: notesBinding(for: book)
+            notes: notesBinding(for: book),
+            reviews: reviewsBinding(for: book)
         )) {
             BookRowView(
                 book: book,
                 progress: progress(for: book),
+                averageRating: viewModel.averageRating(for: book.id),
+                reviewsCount: viewModel.reviews(for: book.id).count,
                 showAuthors: config.showAuthors,
                 showProgress: config.showProgress,
+                showRatings: config.showRatings,
                 advanceStatus: { viewModel.advanceStatus(id: book.id) }
             )
             .contextMenu {
@@ -79,6 +83,14 @@ struct BookListView: View {
         Binding(
             get: { viewModel.notes(for: book.id) },
             set: { viewModel.updateNotes($0, for: book.id) }
+        )
+    }
+
+    /// F4 Valoraciones y reseñas: enlace a las valoraciones del libro.
+    private func reviewsBinding(for book: Book) -> Binding<[BookReview]> {
+        Binding(
+            get: { viewModel.reviews(for: book.id) },
+            set: { viewModel.updateReviews($0, for: book.id) }
         )
     }
 }

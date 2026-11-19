@@ -14,6 +14,10 @@ final class AppConfig {
     var showProgress: Bool {
         didSet { store(showProgress, forKey: "showProgress") }
     }
+    /// F4 Valoraciones: decide si se ve la valoración media en la lista.
+    var showRatings: Bool {
+        didSet { store(showRatings, forKey: "showRatings") }
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -21,6 +25,7 @@ final class AppConfig {
         self.defaults = defaults
         showAuthors = defaults.object(forKey: "showAuthors") as? Bool ?? true
         showProgress = defaults.object(forKey: "showProgress") as? Bool ?? true
+        showRatings = defaults.object(forKey: "showRatings") as? Bool ?? true
     }
 
     private func store(_ value: Bool, forKey key: String) {

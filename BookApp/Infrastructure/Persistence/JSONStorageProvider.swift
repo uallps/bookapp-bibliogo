@@ -7,6 +7,7 @@ final class JSONStorageProvider: StorageProvider {
     private let progressURL: URL
 #endif
     private let notesURL: URL
+    private let reviewsURL: URL
 
     init(filename: String = "books.json") {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -15,6 +16,7 @@ final class JSONStorageProvider: StorageProvider {
         progressURL = documents.appendingPathComponent("progress.json")
 #endif
         notesURL = documents.appendingPathComponent("notes.json")
+        reviewsURL = documents.appendingPathComponent("reviews.json")
     }
 
     func loadBooks() async throws -> [Book] {
@@ -44,6 +46,15 @@ final class JSONStorageProvider: StorageProvider {
 
     func saveNotes(notes: [BookNote]) async throws {
         try write(JSONEncoder().encode(notes), to: notesURL)
+    }
+
+    func loadReviews() async throws -> [BookReview] {
+        let data = try Data(contentsOf: reviewsURL)
+        return try JSONDecoder().decode([BookReview].self, from: data)
+    }
+
+    func saveReviews(reviews: [BookReview]) async throws {
+        try write(JSONEncoder().encode(reviews), to: reviewsURL)
     }
 
     private func write(_ data: Data, to url: URL) throws {

@@ -18,6 +18,7 @@ let package = Package(
     traits: [
         .trait(name: "Progreso", description: "Característica opcional F1: progreso de lectura"),
         .trait(name: "Notas",    description: "Característica opcional F2: notas y citas de cada libro"),
+        .trait(name: "Valoraciones", description: "Característica opcional F4: valoraciones y reseñas de cada libro"),
     ],
     dependencies: [
         .package(url: "https://github.com/uallps/SwiftOpenUI.git", branch: "uallps"),

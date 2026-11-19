@@ -8,6 +8,8 @@ struct BookDetailView: View {
     let progress: Binding<ReadingProgress>?
     /// F2 Notas y citas: notas de este libro.
     @Binding var notes: [BookNote]
+    /// F4 Valoraciones y reseñas: valoraciones de este libro.
+    @Binding var reviews: [BookReview]
 
     var body: some View {
         Form {
@@ -24,6 +26,7 @@ struct BookDetailView: View {
             }
 #endif
             NotesSection(notes: $notes, bookID: book.id)
+            RatingsSection(reviews: $reviews, bookID: book.id)
         }
         .navigationTitle(book.title)
     }

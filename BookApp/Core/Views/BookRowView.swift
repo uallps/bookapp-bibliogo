@@ -4,8 +4,11 @@ import SwiftUI
 struct BookRowView: View {
     let book: Book
     let progress: ReadingProgress?
+    var averageRating: Double? = nil
+    var reviewsCount: Int = 0
     let showAuthors: Bool
     let showProgress: Bool
+    var showRatings: Bool = true
     let advanceStatus: () -> Void
 
     var body: some View {
@@ -15,7 +18,7 @@ struct BookRowView: View {
                     .foregroundColor(.bookAccent)
             }
             .buttonStyle(.plain)
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(book.title)
                 if showAuthors, let author = book.author {
                     Text(author)
@@ -29,8 +32,21 @@ struct BookRowView: View {
                         .bookCaption(color: progress.color)
                 }
 #endif
+                if showRatings, let average = averageRating, reviewsCount > 0 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.orange)
+                        Text(ratingText(average: average, count: reviewsCount))
+                            .bookCaption(color: .orange)
+                    }
+                }
             }
         }
+    }
+
+    /// Texto con la media de valoración y el recuento de reseñas.
+    private func ratingText(average: Double, count: Int) -> String {
+        String(format: "%.1f (%d)", average, count)
     }
 
     /// Texto del progreso. Se monta como String para que el % se muestre tal cual
