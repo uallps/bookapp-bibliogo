@@ -4,7 +4,7 @@ import SwiftUI
 /// lo que se edita aquí cambia el libro del ViewModel, sin copias.
 struct BookDetailView: View {
     @Binding var book: Book
-    /// F1 Progreso: nil en el producto sin el trait Progreso.
+    /// F1 Progreso del libro.
     let progress: Binding<ReadingProgress>?
     /// F2 Notas y citas: notas de este libro.
     @Binding var notes: [BookNote]
@@ -20,11 +20,9 @@ struct BookDetailView: View {
                 Text(ReadingStatus.leyendo.rawValue).tag(ReadingStatus.leyendo)
                 Text(ReadingStatus.terminado.rawValue).tag(ReadingStatus.terminado)
             }
-#if Progreso
             if let progress {
                 ProgressSection(progress: progress)
             }
-#endif
             NotesSection(notes: $notes, bookID: book.id)
             RatingsSection(reviews: $reviews, bookID: book.id)
         }

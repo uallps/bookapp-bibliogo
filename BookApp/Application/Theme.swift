@@ -47,14 +47,12 @@ extension ReadingStatus {
     }
 }
 
-#if Progreso
 extension ReadingProgress {
     /// Color del progreso: verde al terminar. Solo existe en el producto con progreso.
     var color: Color {
         percentage >= 100 ? .green : .secondary
     }
 }
-#endif
 
 extension NoteKind {
     /// Icono que identifica visualmente el tipo de anotación.

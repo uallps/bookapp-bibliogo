@@ -56,26 +56,17 @@ struct BookListView: View {
         )
     }
 
-    /// F1 Progreso del libro. Sin el trait Progreso no hay progreso: nil.
+    /// F1 Progreso del libro, si ya tiene.
     private func progress(for book: Book) -> ReadingProgress? {
-#if Progreso
         return viewModel.progress(for: book.id)
-#else
-        return nil
-#endif
     }
 
     /// Enlace al progreso del libro para el detalle. Si aún no tiene, empieza en 0 páginas.
-    /// Sin el trait Progreso devuelve nil y el detalle no muestra la sección.
     private func progressBinding(for book: Book) -> Binding<ReadingProgress>? {
-#if Progreso
         return Binding(
             get: { viewModel.progress(for: book.id) ?? ReadingProgress(bookID: book.id, totalPages: 0, currentPage: 0) },
             set: { viewModel.updateProgress($0) }
         )
-#else
-        return nil
-#endif
     }
 
     /// F2 Notas y citas: enlace a las notas del libro.

@@ -3,7 +3,7 @@
 # A diferencia del script de TaskApp no pulsa por coordenadas (dependen del diseño de
 # la ventana); la prueba con clics está en windows-ui.ps1, que busca los controles por texto.
 #   linux-ui.sh            producto base
-#   linux-ui.sh Progreso   producto con el trait Progreso
+#   linux-ui.sh Notas      producto con el trait Notas
 set -u
 VARIANT=${1:-base}
 OUT=shots/$VARIANT

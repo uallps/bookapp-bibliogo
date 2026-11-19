@@ -1,8 +1,6 @@
 import SwiftUI
 
-#if Progreso
 /// F1 Progreso: sección del detalle para indicar el total de páginas y la página actual.
-/// Solo se compila en el producto con el trait Progreso.
 struct ProgressSection: View {
     @Binding var progress: ReadingProgress
 
@@ -19,4 +17,3 @@ struct ProgressSection: View {
         "Leído: \(progress.percentage) %"
     }
 }
-#endif

@@ -13,10 +13,9 @@ let backend: Target.Dependency? = nil
 
 let package = Package(
     name: "BookApp",
-    // Productos de la línea: cada trait activo es una variable de compilación (#if Progreso, #if Notas).
-    // En Xcode, el mismo papel lo cumple el target «BookApp Progreso» o «BookApp Notas».
+    // Productos de la línea: cada trait activo es una variable de compilación (#if Notas).
+    // F1 Progreso ya no es un trait: forma parte de todos los productos.
     traits: [
-        .trait(name: "Progreso",     description: "Característica opcional F1: progreso de lectura"),
         .trait(name: "Notas",        description: "Característica opcional F2: notas y citas de cada libro"),
         .trait(name: "Estadisticas", description: "Característica opcional F5: recuento de libros y por estado"),
     ],

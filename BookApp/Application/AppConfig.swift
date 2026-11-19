@@ -10,7 +10,7 @@ final class AppConfig {
     var showAuthors: Bool {
         didSet { store(showAuthors, forKey: "showAuthors") }
     }
-    /// F1 Progreso. El ajuste solo aparece en el producto compilado con el trait Progreso.
+    /// F1 Progreso: decide si se ve el progreso en la lista.
     var showProgress: Bool {
         didSet { store(showProgress, forKey: "showProgress") }
     }

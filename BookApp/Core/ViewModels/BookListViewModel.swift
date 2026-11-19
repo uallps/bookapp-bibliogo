@@ -16,8 +16,6 @@ final class BookListViewModel {
     }
 
     /// F1 Progreso: un registro por libro, enlazado por bookID. Se guarda aparte de los libros.
-    /// La propiedad existe en todos los productos para no meter un #if dentro de una
-    /// clase @Observable; sin el trait Progreso se queda vacía y no se guarda.
     var progress: [ReadingProgress] = BookListViewModel.sampleProgress {
         didSet { saveProgress() }
     }
@@ -44,13 +42,9 @@ final class BookListViewModel {
         BookStatistics(books: books)
     }
 
-#if Progreso
     private static let sampleProgress = [
         ReadingProgress(bookID: junco.id, totalPages: 456, currentPage: 120)
     ]
-#else
-    private static let sampleProgress: [ReadingProgress] = []
-#endif
 
     @ObservationIgnored private let storageProvider: StorageProvider
     @ObservationIgnored private var loaded = false
@@ -71,13 +65,11 @@ final class BookListViewModel {
         } catch {
             print("No se han cargado libros: \(error)")
         }
-#if Progreso
         do {
             progress = try await storageProvider.loadProgress()
         } catch {
             print("No se ha cargado el progreso: \(error)")
         }
-#endif
         do {
             notes = try await storageProvider.loadNotes()
         } catch {
@@ -103,9 +95,7 @@ final class BookListViewModel {
 
     func removeBook(id: UUID) {
         books.removeAll { $0.id == id }
-#if Progreso
         progress.removeAll { $0.bookID == id }
-#endif
         notes.removeAll { $0.bookID == id }
         reviews.removeAll { $0.bookID == id }
     }
@@ -121,7 +111,6 @@ final class BookListViewModel {
         books[index] = book
     }
 
-#if Progreso
     /// El progreso de un libro, si ya tiene.
     func progress(for bookID: UUID) -> ReadingProgress? {
         progress.first { $0.bookID == bookID }
@@ -135,7 +124,6 @@ final class BookListViewModel {
             progress.append(newProgress)
         }
     }
-#endif
 
     /// Las notas del libro con ese id.
     func notes(for bookID: UUID) -> [BookNote] {
@@ -184,7 +172,6 @@ final class BookListViewModel {
     }
 
     private func saveProgress() {
-#if Progreso
         let progress = progress
         Task {
             do {
@@ -193,7 +180,6 @@ final class BookListViewModel {
                 print("No se ha guardado el progreso: \(error)")
             }
         }
-#endif
     }
 
     private func saveNotes() {
