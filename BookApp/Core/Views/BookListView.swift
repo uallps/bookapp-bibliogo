@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BookListView: View {
-    @State private var viewModel = BookListViewModel()
+    var viewModel = BookListViewModel()
     /// La configuración la crea la app y llega por el entorno: es la misma que edita Ajustes.
     @Environment(AppConfig.self) private var config
 

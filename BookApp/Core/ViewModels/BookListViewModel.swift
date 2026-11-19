@@ -39,6 +39,11 @@ final class BookListViewModel {
         BookReview(bookID: klara.id, userName: "David R.", rating: 4, comment: "Una historia conmovedora sobre la inteligencia artificial y el amor.", isUserReview: false),
     ]
 
+    /// F5 Estadísticas: recuento total y por estado calculado a partir de los libros actuales.
+    var statistics: BookStatistics {
+        BookStatistics(books: books)
+    }
+
 #if Progreso
     private static let sampleProgress = [
         ReadingProgress(bookID: junco.id, totalPages: 456, currentPage: 120)
