@@ -44,13 +44,10 @@ final class BookListViewModel {
         BookStatistics(books: books)
     }
 
-#if Progreso
     private static let sampleProgress = [
         ReadingProgress(bookID: junco.id, totalPages: 456, currentPage: 120)
     ]
-#else
     private static let sampleProgress: [ReadingProgress] = []
-#endif
 
     @ObservationIgnored private let storageProvider: StorageProvider
     @ObservationIgnored private var loaded = false
