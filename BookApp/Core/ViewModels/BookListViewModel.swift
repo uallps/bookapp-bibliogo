@@ -6,9 +6,15 @@ import Observation
 @Observable
 final class BookListViewModel {
     /// Libros de ejemplo, para la primera vez que se abre la app.
-    private static let dune  = Book(title: "Dune", author: "Frank Herbert")
-    private static let junco = Book(title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
-    private static let klara = Book(title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
+    /// Llevan un id fijo: mientras no se toca la lista no se escribe books.json, y con un
+    /// id nuevo en cada arranque los datos guardados aparte (progreso, valoraciones,
+    /// categorías...) dejarían de encontrar su libro al volver a abrir la app.
+    private static let dune  = Book(id: UUID(uuidString: "6B1D2C4E-0001-4B00-8000-B00C0000D0E1")!,
+                                    title: "Dune", author: "Frank Herbert")
+    private static let junco = Book(id: UUID(uuidString: "6B1D2C4E-0002-4B00-8000-B00C0000D0E2")!,
+                                    title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
+    private static let klara = Book(id: UUID(uuidString: "6B1D2C4E-0003-4B00-8000-B00C0000D0E3")!,
+                                    title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
 
     /// Cada cambio en la lista (cambiar estado, añadir, borrar o editar en el detalle) se guarda.
     var books: [Book] = [BookListViewModel.dune, BookListViewModel.junco, BookListViewModel.klara] {
