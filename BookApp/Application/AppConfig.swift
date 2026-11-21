@@ -28,7 +28,7 @@ final class AppConfig {
         showRatings = defaults.object(forKey: "showRatings") as? Bool ?? true
     }
 
-    private func store(_ value: Bool, forKey key: String) {
+    private func store(_ value: Any, forKey key: String) {
         defaults.set(value, forKey: key)
         // En Linux y Windows, UserDefaults escribe en disco más tarde: lo forzamos ya.
         defaults.synchronize()
