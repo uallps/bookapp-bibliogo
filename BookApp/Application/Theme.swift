@@ -71,3 +71,12 @@ extension NoteKind {
         }
     }
 }
+
+extension Category {
+    /// F3: icono de las categorías en la fila.
+    static let systemImage = "tag"
+    /// F3: icono del botón para crear una categoría.
+    static let addSystemImage = "plus.circle"
+    /// F3: color de las categorías en la fila.
+    static let color = Color.teal
+}

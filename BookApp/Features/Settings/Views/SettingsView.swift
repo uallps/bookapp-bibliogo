@@ -11,6 +11,7 @@ struct SettingsView: View {
                 Toggle("Mostrar autores", isOn: $config.showAuthors)
                 Toggle("Mostrar progreso de lectura", isOn: $config.showProgress)
                 Toggle("Mostrar valoraciones", isOn: $config.showRatings)
+                Toggle("Mostrar categorías", isOn: $config.showCategories)
             }
         }
         .navigationTitle("Ajustes")
