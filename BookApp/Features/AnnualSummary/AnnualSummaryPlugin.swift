@@ -139,6 +139,10 @@ final class AnnualSummaryPlugin: DataPlugin, ViewPlugin {
 
     var isEnabled: Bool { showSummary }
 
+    /// El resumen no añade nada a la fila ni encima de la biblioteca.
+    func bookRowView(for book: Book) -> EmptyView { EmptyView() }
+    func libraryView() -> EmptyView { EmptyView() }
+
     var screenTitle: String? { "Resumen anual" }
     var screenSystemImage: String { "calendar" }
 
