@@ -29,7 +29,7 @@ jobs:
       - name: Compilar
         run: swift build --product BookApp
       - name: Compilar el producto con todas las originales
-        run: swift build --product BookApp --traits Sugerencia,OpenLibrary,ObjetivoAnual,Prestamos,Exportacion
+        run: swift build --product BookApp --traits Sugerencia,Logros,Importacion,ResumenAnual,Autores,Sagas,Portadas,ColaLectura,Exportacion,Gastos
       - name: Arrancar y probar la interfaz (producto base)
         run: bash .github/scripts/linux-ui.sh
       - uses: actions/upload-artifact@v4
@@ -60,7 +60,7 @@ jobs:
       - name: Arrancar y probar la interfaz
         run: ./.github/scripts/windows-ui.ps1
       - name: Compilar el producto con todas las originales
-        run: swift build --product BookApp --traits Sugerencia,OpenLibrary,ObjetivoAnual,Prestamos,Exportacion
+        run: swift build --product BookApp --traits Sugerencia,Logros,Importacion,ResumenAnual,Autores,Sagas,Portadas,ColaLectura,Exportacion,Gastos
       - uses: actions/upload-artifact@v4
         if: always()
         with:
