@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Fila de un libro. No conoce el ViewModel: recibe los datos, los flags y la acción.
+/// Fila de un libro. No conoce el ViewModel ni los plugins: recibe los datos, los flags
+/// y la acción, y debajo muestra lo que le dé el registro para este libro.
 struct BookRowView: View {
     let book: Book
     let progress: ReadingProgress?
@@ -10,8 +11,6 @@ struct BookRowView: View {
     let showProgress: Bool
     var showRatings: Bool = true
     let advanceStatus: () -> Void
-    /// F3 Categorías: por ejemplo "Novela · Clásicos". nil si no hay o no se muestran.
-    var categoryText: String? = nil
 
 #if !canImport(SwiftOpenUI)
     @Environment(\.colorScheme) private var colorScheme
@@ -73,16 +72,9 @@ struct BookRowView: View {
                         .lineLimit(1)
                 }
 
-                if let categoryText {
-                    HStack(spacing: 4) {
-                        Image(systemName: Category.systemImage)
-                            .font(.system(size: 9))
-                            .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
-                        Text(categoryText)
-                            .font(.caption2.weight(.medium))
-                            .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
-                            .lineLimit(1)
-                    }
+                // Lo que añaden los plugins.
+                ForEach(PluginRegistry.shared.bookRowViews(for: book)) { pluginView in
+                    pluginView.view
                 }
 
                 if showProgress, let progress, progress.totalPages > 0 {
@@ -154,13 +146,9 @@ struct BookRowView: View {
                     }
                 }
 
-                if let categoryText {
-                    HStack(spacing: 3) {
-                        Image(systemName: Category.systemImage)
-                            .foregroundColor(Category.color)
-                        Text(categoryText)
-                            .bookCaption(color: Category.color)
-                    }
+                // Lo que añaden los plugins.
+                ForEach(PluginRegistry.shared.bookRowViews(for: book)) { pluginView in
+                    pluginView.view
                 }
             }
             .padding(.vertical, 4)
