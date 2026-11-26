@@ -12,15 +12,73 @@ struct BookApp: App {
 #if os(iOS)
             TabView {
                 BookListView(viewModel: viewModel)
-                    .tabItem { Label("Biblioteca", systemImage: "books.vertical") }
+                    .tabItem { Label("Biblioteca", systemImage: "books.vertical.fill") }
                 NavigationStack {
                     StatisticsView(statistics: viewModel.statistics)
                 }
-                .tabItem { Label("Estadísticas", systemImage: "checklist") }
-                SettingsView()
-                    .tabItem { Label("Ajustes", systemImage: "gearshape") }
+                .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
+                NavigationStack {
+                    SettingsView()
+                }
+                .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
             }
             .environment(config)
+            .tint(Color.bookAccent)
+#elseif os(macOS)
+            NavigationSplitView {
+                List(selection: $selection) {
+                    Section {
+                        HStack(spacing: 10) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.bookAccent)
+                                    .frame(width: 30, height: 30)
+                                Image(systemName: "book.pages.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("BiblioGo")
+                                    .font(.system(.headline, design: .serif))
+                                Text("Espacio sereno")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 6)
+                    }
+
+                    Section("Explorar") {
+                        NavigationLink(value: "biblioteca") {
+                            Label("Biblioteca", systemImage: "books.vertical.fill")
+                        }
+                        NavigationLink(value: "estadisticas") {
+                            Label("Hábitos", systemImage: "leaf.fill")
+                        }
+                        NavigationLink(value: "ajustes") {
+                            Label("Ajustes", systemImage: "slider.horizontal.3")
+                        }
+                    }
+                }
+                .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 270)
+            } detail: {
+                switch selection {
+                case "biblioteca":
+                    BookListView(viewModel: viewModel)
+                case "estadisticas":
+                    NavigationStack {
+                        StatisticsView(statistics: viewModel.statistics)
+                    }
+                case "ajustes":
+                    NavigationStack {
+                        SettingsView()
+                    }
+                default:
+                    BookListView(viewModel: viewModel)
+                }
+            }
+            .environment(config)
+            .tint(Color.bookAccent)
 #else
             NavigationSplitView {
                 List(selection: $selection) {
@@ -49,7 +107,11 @@ struct BookApp: App {
                 }
             }
             .environment(config)
+            .tint(Color.bookAccent)
 #endif
         }
+#if os(macOS)
+        .defaultSize(width: 1060, height: 740)
+#endif
     }
 }
