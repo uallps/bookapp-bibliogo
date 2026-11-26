@@ -93,15 +93,19 @@ final class PluginRegistry {
 
     /// Las pantallas propias de los plugins activos, para la barra lateral.
     func screens() -> [PluginScreen] {
-        enabledViewPlugins.compactMap { plugin in
-            guard let title = plugin.screenTitle else { return nil }
-            return PluginScreen(
-                id: plugin.name,
-                title: title,
-                systemImage: plugin.screenSystemImage,
-                view: AnyView(plugin.screenView())
-            )
-        }
+        enabledViewPlugins.compactMap { makeScreen(for: $0) }
+    }
+
+    /// Abre el existencial `any ViewPlugin` en un genérico `P` para que Swift despache
+    /// dinámicamente `P.screenView()` en lugar de resolver estáticamente la extensión `EmptyView`.
+    private func makeScreen<P: ViewPlugin>(for plugin: P) -> PluginScreen? {
+        guard let title = plugin.screenTitle else { return nil }
+        return PluginScreen(
+            id: plugin.name,
+            title: title,
+            systemImage: plugin.screenSystemImage,
+            view: AnyView(plugin.screenView())
+        )
     }
 
     /// La pantalla de un plugin a partir de su etiqueta en la barra lateral.

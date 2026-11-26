@@ -16,6 +16,9 @@ struct BookApp: App {
         // F3 Categorías: plugin común, se registra siempre (sin trait).
         PluginRegistry.shared.register(CategoryPlugin(config: config))
         // Las originales se registran aquí, cada una dentro de su trait:
+        #if Sugerencia
+        PluginRegistry.shared.register(SuggestionPlugin(library: viewModel))
+        #endif
         // #if Sagas
         // PluginRegistry.shared.register(SagaPlugin(config: config, library: viewModel))
         // #endif
@@ -72,21 +75,17 @@ struct BookApp: App {
                     }
 
                     Section("Explorar") {
-                        NavigationLink(value: "biblioteca") {
-                            Label("Biblioteca", systemImage: "books.vertical.fill")
-                        }
-                        NavigationLink(value: "estadisticas") {
-                            Label("Hábitos", systemImage: "leaf.fill")
-                        }
+                        Label("Biblioteca", systemImage: "books.vertical.fill")
+                            .tag("biblioteca" as String?)
+                        Label("Hábitos", systemImage: "leaf.fill")
+                            .tag("estadisticas" as String?)
                         // Las pantallas propias de los plugins activos.
-                        ForEach(PluginRegistry.shared.screens()) { screen in
-                            NavigationLink(value: screen.tag) {
-                                Label(screen.title, systemImage: screen.systemImage)
-                            }
+                        ForEach(PluginRegistry.shared.screens(), id: \.tag) { screen in
+                            Label(screen.title, systemImage: screen.systemImage)
+                                .tag(screen.tag as String?)
                         }
-                        NavigationLink(value: "ajustes") {
-                            Label("Ajustes", systemImage: "slider.horizontal.3")
-                        }
+                        Label("Ajustes", systemImage: "slider.horizontal.3")
+                            .tag("ajustes" as String?)
                     }
                 }
                 .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 270)
@@ -107,6 +106,7 @@ struct BookApp: App {
                         NavigationStack {
                             screen.view
                         }
+                        .id(screen.tag)
                     } else {
                         BookListView(viewModel: viewModel)
                     }
@@ -124,7 +124,7 @@ struct BookApp: App {
                         Label("Estadísticas", systemImage: "checklist")
                     }
                     // Las pantallas propias de los plugins activos.
-                    ForEach(PluginRegistry.shared.screens()) { screen in
+                    ForEach(PluginRegistry.shared.screens(), id: \.tag) { screen in
                         NavigationLink(value: screen.tag) {
                             Label(screen.title, systemImage: screen.systemImage)
                         }
