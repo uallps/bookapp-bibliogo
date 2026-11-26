@@ -19,22 +19,37 @@ El mismo código de la carpeta `BookApp/` funciona en los tres sistemas:
 | Producto | Xcode (Mac) | Linux y Windows |
 |---|---|---|
 | Base: Core y F1–F5 | scheme `BookApp` | `swift run BookApp` |
-| Completo: además, todas las originales | scheme `BookApp Completa` | `swift run --traits Sugerencia,OpenLibrary,ObjetivoAnual,Prestamos,Exportacion BookApp` |
-| Base y una original concreta | (añadir su condición al target) | `swift run --traits Prestamos BookApp` |
+| Completo: además, todas las originales | scheme `BookApp Completa` | `swift run --traits Sugerencia,Logros,Importacion,ResumenAnual,Autores,Sagas,Portadas,ColaLectura,Exportacion,Gastos BookApp` |
+| Base y una original concreta | (añadir su condición al target) | `swift run --traits Sagas BookApp` |
 
 ## Características
 
-| | Característica | Cómo varía |
-|---|---|---|
-| Core | Biblioteca: libros con título, autor y estado; alta, edición, cambio de estado, borrado y persistencia en JSON | Siempre |
-| F1–F5 | Progreso, Notas y citas, Categorías, Valoraciones y Estadísticas | Siempre compiladas; se muestran u ocultan en Ajustes |
-| O1 | Sugerencia de próxima lectura (XOR: aleatoria / por tiempo y extensión) | Trait `Sugerencia` |
-| O2 | Búsqueda en Open Library | Trait `OpenLibrary` |
-| O3 | Objetivo anual | Trait `ObjetivoAnual` |
-| O4 | Préstamo de libros | Trait `Prestamos` |
-| O5 | Exportación (OR: CSV / Markdown) | Trait `Exportacion` |
+| | Característica | Cómo varía | Responsable |
+|---|---|---|---|
+| Core | Biblioteca: libros con título, autor y estado; alta, edición, cambio de estado, borrado y persistencia en JSON | Siempre | |
+| F1 | Progreso de lectura | Siempre compilada; se muestra u oculta en Ajustes | Hugo |
+| F2 | Notas y citas | Ídem | Sergio |
+| F3 | Categorías | Ídem | Arturo |
+| F4 | Valoraciones | Ídem | Javier |
+| F5 | Estadísticas | Ídem | Iván |
+| O1 | Sugerencia de próxima lectura (XOR: aleatoria / por tiempo y extensión) | Trait `Sugerencia` | Sergio |
+| O2 | Logros e insignias: solo aparecen los de las características incluidas en el producto | Trait `Logros` | Sergio |
+| O3 | Importación de libros desde CSV, con el mismo formato que la exportación | Trait `Importacion` | Hugo |
+| O4 | Resumen anual: libros terminados, páginas y lo más destacado de un año | Trait `ResumenAnual` | Hugo |
+| O5 | Autores: ficha de cada autor y filtro por autor | Trait `Autores` | Arturo |
+| O6 | Sagas y series: libros agrupados en orden y cuál toca leer después | Trait `Sagas` | Arturo |
+| O7 | Foto de la portada | Trait `Portadas` | Javier |
+| O8 | Cola de lectura: orden de los próximos libros | Trait `ColaLectura` | Javier |
+| O9 | Exportación (OR: CSV / Markdown) | Trait `Exportacion` | Iván |
+| O10 | Gasto en libros: precio de cada libro y gasto por año | Trait `Gastos` | Iván |
 
-El diagrama de características y la memoria de la sesión 3 están en [`docs/`](docs/SESION-03.md).
+Algunas originales se aprovechan de otras cuando están en el mismo producto: la sugerencia propone el primer libro de la cola de lectura, el resumen anual incluye el gasto del año y las sagas terminadas, y la importación lee lo que genera la exportación.
+
+El diagrama de características de la sesión 3, con la primera versión de las originales, está en [`docs/`](docs/SESION-03.md).
+
+## Dos interfaces
+
+En Mac la app usa la interfaz de BiblioGo (vistas `apple…Body`, bajo `#if !canImport(SwiftOpenUI)`); en Linux y Windows, una versión más sencilla (vistas `openUI…Body`). Cada característica tiene que integrarse en las dos. La CI prueba con clics la de Windows; la de Mac hay que revisarla a mano.
 
 ## Estructura
 
