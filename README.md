@@ -61,10 +61,25 @@ BookApp/
 └── Infrastructure/    Persistence (StorageProvider, JSON, Mock) y Plugins (registro y protocolos)
 ```
 
+## Plugins
+
+Cada característica original es un plugin en su carpeta de `Features/`. El núcleo no nombra ningún plugin: los pide al registro (`PluginRegistry.shared`) y muestra lo que le devuelve. El único sitio donde aparece cada plugin es su registro en `BookApp.swift`, dentro de su trait.
+
+| Protocolo | Para qué | Métodos |
+|---|---|---|
+| `DataPlugin` | Mantener sus datos al día | `willDeleteBook`, `didDeleteBook`, `didChangeStatus` |
+| `ViewPlugin` | Aportar vistas en puntos fijos | `bookRowView(for:)`, `bookDetailView(for:)`, `settingsView()`, `libraryView()`, `filterBooks(_:)`, `screenTitle` y `screenView()` |
+
+Todos los métodos tienen una versión por defecto que no hace nada, así que cada plugin implementa solo lo que necesita. `isEnabled` decide si sus vistas se ven (normalmente, un ajuste); su ajuste se ve siempre. F3 Categorías es el ejemplo completo.
+
+- Si el plugin necesita los libros o cambiarlos (por ejemplo, empezar a leer uno), recibe la biblioteca al crearse: `MiPlugin(config: config, library: viewModel)`.
+- Los plugins ya no se ponen en el entorno con `.environment(...)`: sus vistas reciben el plugin o sus datos como parámetros.
+
 ## Flujo de trabajo
 
 - `main`: solo las entregas finales.
 - `develop`: integración; aquí llegan las PR.
-- `feature/<código>-<nombre>`: una rama por característica, a partir de `develop`.
+- `feat-<usuario>`: la rama de cada miembro, a partir de `develop`. Cuando tiene sus dos características, PR a `develop`.
+- `<usuario>/feat-<nombre>`: una rama por característica, a partir de la rama del miembro. Se fusiona en ella y se borra.
 
 Cada PR se compila en la CI en macOS, Linux y Windows, con el producto base y con todas las originales.

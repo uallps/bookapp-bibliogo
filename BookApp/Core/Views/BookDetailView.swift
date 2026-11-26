@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Detalle de un libro. Recibe un enlace (@Binding) al libro de la lista:
 /// lo que se edita aquí cambia el libro del ViewModel, sin copias.
+/// Debajo, lo que añadan los plugins para este libro.
 struct BookDetailView: View {
     @Binding var book: Book
     /// F1 Progreso del libro.
@@ -10,8 +11,6 @@ struct BookDetailView: View {
     @Binding var notes: [BookNote]
     /// F4 Valoraciones y reseñas: valoraciones de este libro.
     @Binding var reviews: [BookReview]
-    /// F3 Categorías: la sección ya preparada por la lista. nil si no se muestra.
-    var categories: CategoriesSection? = nil
 
 #if !canImport(SwiftOpenUI)
     @Environment(\.colorScheme) private var colorScheme
@@ -42,11 +41,12 @@ struct BookDetailView: View {
                     if let progress {
                         ProgressSection(progress: progress)
                     }
-                    if let categories {
-                        categories
-                    }
                     NotesSection(notes: $notes, bookID: book.id)
                     RatingsSection(reviews: $reviews, bookID: book.id)
+                    // Lo que añaden los plugins.
+                    ForEach(PluginRegistry.shared.bookDetailViews(for: book)) { pluginView in
+                        pluginView.view
+                    }
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 18)
@@ -208,8 +208,9 @@ struct BookDetailView: View {
 #endif
             NotesSection(notes: $notes, bookID: book.id)
             RatingsSection(reviews: $reviews, bookID: book.id)
-            if let categories {
-                categories
+            // Lo que añaden los plugins.
+            ForEach(PluginRegistry.shared.bookDetailViews(for: book)) { pluginView in
+                pluginView.view
             }
         }
         .navigationTitle(book.title)
