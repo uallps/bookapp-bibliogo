@@ -626,17 +626,16 @@ struct BookListView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: "quote.opening")
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundColor(Color.bookAccent)
                 Text("CITA GUARDADA RECIENTEMENTE")
-                    .font(.caption2)
+                    .font(.caption)
                     .bold()
                     .foregroundColor(Color.bookAccent)
             }
 
             Text("“\(quote.text)”")
                 .font(.subheadline)
-                .italic()
                 .foregroundColor(.primary)
                 .padding(.vertical, 2)
 
@@ -649,7 +648,6 @@ struct BookListView: View {
                     Spacer()
                     if let page = quote.page {
                         Text("Pág. \(page)")
-                            .font(.caption2)
                             .bookCaption()
                     }
                 }

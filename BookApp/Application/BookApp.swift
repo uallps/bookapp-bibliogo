@@ -119,7 +119,6 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
-            .tint(Color.bookAccent)
 #endif
         }
 #if os(macOS)

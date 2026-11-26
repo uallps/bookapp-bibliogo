@@ -333,14 +333,8 @@ private struct ReviewRowView: View {
                     .bold()
 
                 if review.isUserReview {
-                    Text("Tú")
-                        .font(.caption2)
-                        .bold()
-                        .foregroundColor(Color.bookSageDark)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.bookSage)
-                        .cornerRadius(4)
+                    Text("(Tú)")
+                        .bookCaption(color: Color.bookAccent)
                 }
 
                 Spacer()

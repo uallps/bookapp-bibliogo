@@ -129,39 +129,29 @@ struct BookRowView: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(book.status.rawValue)
-                        .font(.caption2)
-                        .bold()
-                        .foregroundColor(book.status == .leyendo ? .white : Color.bookSageDark)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(book.status == .leyendo ? Color.bookAccent : Color.bookSage)
-                        .cornerRadius(4)
-
-                    if showRatings, let average = averageRating, reviewsCount > 0 {
-                        HStack(spacing: 2) {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.bookStar)
-                                .font(.caption2)
-                            Text(ratingText(average: average, count: reviewsCount))
-                                .bookCaption(color: .bookStar)
-                        }
-                    }
-                }
-
                 Text(book.title)
                     .font(.headline)
 
                 if showAuthors, let author = book.author {
                     Text(author)
-                        .font(.subheadline)
                         .bookCaption()
                 }
+
+                Text(book.status.rawValue)
+                    .bookCaption(color: book.status.color)
 
                 if showProgress, let progress {
                     Text(progressText(progress))
                         .bookCaption(color: progress.color)
+                }
+
+                if showRatings, let average = averageRating, reviewsCount > 0 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.bookStar)
+                        Text(ratingText(average: average, count: reviewsCount))
+                            .bookCaption(color: .bookStar)
+                    }
                 }
 
                 if let categoryText {

@@ -240,10 +240,10 @@ struct StatisticsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         Image(systemName: "leaf.fill")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundColor(Color.bookAccent)
                         Text("ESPACIO SERENO • HÁBITOS")
-                            .font(.caption2)
+                            .font(.caption)
                             .bold()
                             .foregroundColor(Color.bookAccent)
                     }
@@ -259,7 +259,7 @@ struct StatisticsView: View {
             Section(header: Text("Resumen general")) {
                 HStack(spacing: 12) {
                     Image(systemName: "books.vertical.fill")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundColor(Color.bookAccent)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Total de libros")
@@ -278,7 +278,7 @@ struct StatisticsView: View {
 
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundColor(Color(red: 0.22, green: 0.52, blue: 0.35))
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Completados")
@@ -289,13 +289,7 @@ struct StatisticsView: View {
                     }
                     Spacer()
                     Text("\(Int(statistics.completionPercentage)) %")
-                        .font(.subheadline)
-                        .bold()
-                        .foregroundColor(Color(red: 0.22, green: 0.52, blue: 0.35))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.bookSage)
-                        .cornerRadius(6)
+                        .bookCaption(color: Color(red: 0.22, green: 0.52, blue: 0.35))
                 }
                 .padding(.vertical, 2)
             }
@@ -304,11 +298,9 @@ struct StatisticsView: View {
                 ForEach(ReadingStatus.allCases, id: \.self) { status in
                     HStack(spacing: 12) {
                         Image(systemName: status.systemImage)
-                            .font(.title3)
                             .foregroundColor(status.color)
 
                         Text(status.rawValue)
-                            .font(.body)
 
                         Spacer()
 
@@ -316,10 +308,7 @@ struct StatisticsView: View {
                             .bookCaption()
 
                         Text("(\(Int(statistics.percentage(for: status))) %)")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(status.color)
-                            .frame(minWidth: 44, alignment: .trailing)
+                            .bookCaption(color: status.color)
                     }
                     .padding(.vertical, 2)
                 }
