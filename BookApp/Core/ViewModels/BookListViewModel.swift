@@ -81,8 +81,7 @@ final class BookListViewModel {
             print("No se ha cargado el progreso: \(error)")
         }
         do {
-            let loaded = try await storageProvider.loadNotes()
-            notes = loaded.isEmpty ? Self.sampleNotes : loaded
+            notes = try await storageProvider.loadNotes()
         } catch {
             print("No se han cargado las notas: \(error)")
         }
