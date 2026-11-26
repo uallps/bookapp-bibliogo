@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// Pantalla de Ajustes: activa o desactiva las características en ejecución.
+/// Debajo de los ajustes del núcleo van los de los plugins, sin saber de quién son.
 struct SettingsView: View {
     @Environment(AppConfig.self) private var config
 
@@ -46,36 +47,34 @@ struct SettingsView: View {
                     }
 
                     VStack(spacing: 0) {
-                        settingToggleRow(
+                        FeatureToggle(
                             title: "Mostrar autores",
                             subtitle: "Ver el nombre del autor debajo del título",
-                            icon: "person.text.rectangle",
+                            systemImage: "person.text.rectangle",
                             isOn: $config.showAuthors
                         )
 
                         Divider().padding(.leading, 48)
-                        settingToggleRow(
+                        FeatureToggle(
                             title: "Mostrar progreso de lectura",
                             subtitle: "Mostrar barra de avance y páginas leídas",
-                            icon: "book.pages",
+                            systemImage: "book.pages",
                             isOn: $config.showProgress
                         )
 
                         Divider().padding(.leading, 48)
-                        settingToggleRow(
+                        FeatureToggle(
                             title: "Mostrar valoraciones",
                             subtitle: "Ver estrellas y nota media en cada libro",
-                            icon: "star.fill",
+                            systemImage: "star.fill",
                             isOn: $config.showRatings
                         )
 
-                        Divider().padding(.leading, 48)
-                        settingToggleRow(
-                            title: "Mostrar categorías",
-                            subtitle: "Filtrar y mostrar etiquetas de género en la biblioteca",
-                            icon: Category.systemImage,
-                            isOn: $config.showCategories
-                        )
+                        // Los ajustes de los plugins, también de los apagados.
+                        ForEach(PluginRegistry.shared.settingsViews()) { pluginView in
+                            Divider().padding(.leading, 48)
+                            pluginView.view
+                        }
                     }
                     .biblioCard(scheme: colorScheme, cornerRadius: 18, padding: 16)
 
@@ -119,31 +118,6 @@ struct SettingsView: View {
 #endif
     }
 
-    private func settingToggleRow(title: String, subtitle: String, icon: String, isOn: Binding<Bool>) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
-                .frame(width: 34, height: 34)
-                .background(
-                    Circle().fill(Color.bookSageSurface(for: colorScheme))
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer(minLength: 8)
-
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-        }
-        .padding(.vertical, 8)
-    }
 #endif
 
     private var openUISettingsBody: some View {
@@ -153,7 +127,10 @@ struct SettingsView: View {
                 Toggle("Mostrar autores", isOn: $config.showAuthors)
                 Toggle("Mostrar progreso de lectura", isOn: $config.showProgress)
                 Toggle("Mostrar valoraciones", isOn: $config.showRatings)
-                Toggle("Mostrar categorías", isOn: $config.showCategories)
+                // Los ajustes de los plugins, también de los apagados.
+                ForEach(PluginRegistry.shared.settingsViews()) { pluginView in
+                    pluginView.view
+                }
             }
         }
         .navigationTitle("Ajustes")
