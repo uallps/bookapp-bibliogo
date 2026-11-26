@@ -36,6 +36,9 @@ struct BookDetailView: View {
                     heroHeaderCard
                     bookInfoCard
 
+#if Portadas
+                    CoverSection(book: book)
+#endif
                     if let progress {
                         ProgressSection(progress: progress)
                     }
@@ -200,6 +203,9 @@ struct BookDetailView: View {
             if let progress {
                 ProgressSection(progress: progress)
             }
+#if Portadas
+            CoverSection(book: book)
+#endif
             NotesSection(notes: $notes, bookID: book.id)
             RatingsSection(reviews: $reviews, bookID: book.id)
             if let categories {

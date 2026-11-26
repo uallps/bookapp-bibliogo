@@ -202,6 +202,48 @@ struct BookCoverView: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
+#if Portadas
+            if let customCoverImage {
+                customCoverImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width, height: height)
+            } else {
+                generatedCoverContent
+            }
+#else
+            generatedCoverContent
+#endif
+        }
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.black.opacity(0.08), lineWidth: 0.75)
+        )
+        .shadow(color: Color.black.opacity(0.10), radius: 5, x: 0, y: 3)
+    }
+
+#if Portadas
+    private var customCoverImage: Image? {
+        guard let data = BookCoversPlugin.active?.imageData(title: title, author: author) else {
+            return nil
+        }
+#if os(macOS)
+        if let nsImage = NSImage(data: data) {
+            return Image(nsImage: nsImage)
+        }
+#elseif os(iOS)
+        if let uiImage = UIImage(data: data) {
+            return Image(uiImage: uiImage)
+        }
+#endif
+        return nil
+    }
+#endif
+
+    private var generatedCoverContent: some View {
+        ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(
                     LinearGradient(
@@ -238,13 +280,6 @@ struct BookCoverView: View {
             .frame(maxWidth: .infinity)
             .padding(.leading, 4)
         }
-        .frame(width: width, height: height)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color.black.opacity(0.08), lineWidth: 0.75)
-        )
-        .shadow(color: Color.black.opacity(0.10), radius: 5, x: 0, y: 3)
     }
 }
 

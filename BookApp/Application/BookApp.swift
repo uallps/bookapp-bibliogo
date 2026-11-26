@@ -12,6 +12,10 @@ struct BookApp: App {
     /// O8 Cola de lectura: plugin opcional activado con el trait `ColaLectura`.
     @State private var readingQueue: ReadingQueuePlugin
 #endif
+#if Portadas
+    /// O7 Foto de la portada: plugin opcional activado con el trait `Portadas`.
+    @State private var covers: BookCoversPlugin
+#endif
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
     init() {
@@ -23,110 +27,86 @@ struct BookApp: App {
         PluginRegistry.shared.register(readingQueue)
         _readingQueue = State(wrappedValue: readingQueue)
 #endif
+#if Portadas
+        let covers = BookCoversPlugin()
+        PluginRegistry.shared.register(covers)
+        _covers = State(wrappedValue: covers)
+#endif
     }
 
     var body: some Scene {
         WindowGroup {
-#if os(iOS)
-            TabView {
-                BookListView(viewModel: viewModel)
-                    .tabItem { Label("Biblioteca", systemImage: "books.vertical.fill") }
-#if ColaLectura
-                NavigationStack {
-                    readingQueueView
+            rootContent
+#if Portadas && !canImport(SwiftOpenUI)
+                .task(id: coverSyncKey) {
+                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    guard !Task.isCancelled else { return }
+                    await covers.syncCovers(for: viewModel.books)
                 }
-                .tabItem { Label("Cola", systemImage: "list.number") }
 #endif
-                NavigationStack {
-                    StatisticsView(statistics: viewModel.statistics)
-                }
-                .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
-                NavigationStack {
-                    SettingsView()
-                }
-                .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
-            }
-            .environment(config)
-            .environment(categories)
-#if ColaLectura
-            .environment(readingQueue)
+        }
+#if os(macOS)
+        .defaultSize(width: 1060, height: 740)
 #endif
-            .tint(Color.bookAccent)
-#elseif os(macOS)
-            NavigationSplitView {
-                List(selection: $selection) {
-                    Section {
-                        HStack(spacing: 10) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color.bookAccent)
-                                    .frame(width: 30, height: 30)
-                                Image(systemName: "book.pages.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("BiblioGo")
-                                    .font(.system(.headline, design: .serif))
-                                Text("Espacio sereno")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 6)
-                    }
+    }
 
-                    Section("Explorar") {
-                        NavigationLink(value: "biblioteca") {
-                            Label("Biblioteca", systemImage: "books.vertical.fill")
-                        }
+    @ViewBuilder
+    private var rootContent: some View {
+#if os(iOS)
+        TabView {
+            BookListView(viewModel: viewModel)
+                .tabItem { Label("Biblioteca", systemImage: "books.vertical.fill") }
 #if ColaLectura
-                        NavigationLink(value: "cola") {
-                            Label("Cola de lectura", systemImage: "list.number")
-                        }
-#endif
-                        NavigationLink(value: "estadisticas") {
-                            Label("Hábitos", systemImage: "leaf.fill")
-                        }
-                        NavigationLink(value: "ajustes") {
-                            Label("Ajustes", systemImage: "slider.horizontal.3")
-                        }
-                    }
-                }
-                .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 270)
-            } detail: {
-                switch selection {
-                case "biblioteca":
-                    BookListView(viewModel: viewModel)
-#if ColaLectura
-                case "cola":
-                    NavigationStack {
-                        readingQueueView
-                    }
-#endif
-                case "estadisticas":
-                    NavigationStack {
-                        StatisticsView(statistics: viewModel.statistics)
-                    }
-                case "ajustes":
-                    NavigationStack {
-                        SettingsView()
-                    }
-                default:
-                    BookListView(viewModel: viewModel)
-                }
+            NavigationStack {
+                readingQueueView
             }
-            .environment(config)
-            .environment(categories)
-#if ColaLectura
-            .environment(readingQueue)
+            .tabItem { Label("Cola", systemImage: "list.number") }
 #endif
-            .tint(Color.bookAccent)
-#else
-            NavigationSplitView {
-                List(selection: $selection) {
+            NavigationStack {
+                StatisticsView(statistics: viewModel.statistics)
+            }
+            .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
+        }
+        .environment(config)
+        .environment(categories)
+#if ColaLectura
+        .environment(readingQueue)
+#endif
+#if Portadas
+        .environment(covers)
+#endif
+        .tint(Color.bookAccent)
+#elseif os(macOS)
+        NavigationSplitView {
+            List(selection: $selection) {
+                Section {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.bookAccent)
+                                .frame(width: 30, height: 30)
+                            Image(systemName: "book.pages.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("BiblioGo")
+                                .font(.system(.headline, design: .serif))
+                            Text("Espacio sereno")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+
+                Section("Explorar") {
                     NavigationLink(value: "biblioteca") {
-                        Label("Biblioteca", systemImage: "books.vertical")
+                        Label("Biblioteca", systemImage: "books.vertical.fill")
                     }
 #if ColaLectura
                     NavigationLink(value: "cola") {
@@ -134,43 +114,101 @@ struct BookApp: App {
                     }
 #endif
                     NavigationLink(value: "estadisticas") {
-                        Label("Estadísticas", systemImage: "checklist")
+                        Label("Hábitos", systemImage: "leaf.fill")
                     }
                     NavigationLink(value: "ajustes") {
-                        Label("Ajustes", systemImage: "gearshape")
+                        Label("Ajustes", systemImage: "slider.horizontal.3")
                     }
-                }
-            } detail: {
-                switch selection {
-                case "biblioteca":
-                    BookListView(viewModel: viewModel)
-#if ColaLectura
-                case "cola":
-                    NavigationStack {
-                        readingQueueView
-                    }
-#endif
-                case "estadisticas":
-                    NavigationStack {
-                        StatisticsView(statistics: viewModel.statistics)
-                    }
-                case "ajustes":
-                    SettingsView()
-                default:
-                    Text("Elige una opción")
                 }
             }
-            .environment(config)
-            .environment(categories)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 270)
+        } detail: {
+            switch selection {
+            case "biblioteca":
+                BookListView(viewModel: viewModel)
 #if ColaLectura
-            .environment(readingQueue)
+            case "cola":
+                NavigationStack {
+                    readingQueueView
+                }
 #endif
-#endif
+            case "estadisticas":
+                NavigationStack {
+                    StatisticsView(statistics: viewModel.statistics)
+                }
+            case "ajustes":
+                NavigationStack {
+                    SettingsView()
+                }
+            default:
+                BookListView(viewModel: viewModel)
+            }
         }
-#if os(macOS)
-        .defaultSize(width: 1060, height: 740)
+        .environment(config)
+        .environment(categories)
+#if ColaLectura
+        .environment(readingQueue)
+#endif
+#if Portadas
+        .environment(covers)
+#endif
+        .tint(Color.bookAccent)
+#else
+        NavigationSplitView {
+            List(selection: $selection) {
+                NavigationLink(value: "biblioteca") {
+                    Label("Biblioteca", systemImage: "books.vertical")
+                }
+#if ColaLectura
+                NavigationLink(value: "cola") {
+                    Label("Cola de lectura", systemImage: "list.number")
+                }
+#endif
+                NavigationLink(value: "estadisticas") {
+                    Label("Estadísticas", systemImage: "checklist")
+                }
+                NavigationLink(value: "ajustes") {
+                    Label("Ajustes", systemImage: "gearshape")
+                }
+            }
+        } detail: {
+            switch selection {
+            case "biblioteca":
+                BookListView(viewModel: viewModel)
+#if ColaLectura
+            case "cola":
+                NavigationStack {
+                    readingQueueView
+                }
+#endif
+            case "estadisticas":
+                NavigationStack {
+                    StatisticsView(statistics: viewModel.statistics)
+                }
+            case "ajustes":
+                SettingsView()
+            default:
+                Text("Elige una opción")
+            }
+        }
+        .environment(config)
+        .environment(categories)
+#if ColaLectura
+        .environment(readingQueue)
+#endif
+#if Portadas
+        .environment(covers)
+#endif
 #endif
     }
+
+#if Portadas
+    private var coverSyncKey: String {
+        viewModel.books
+            .map { "\($0.id.uuidString)|\($0.title)|\($0.author ?? "")" }
+            .joined(separator: ";")
+    }
+#endif
 
 #if ColaLectura
     private var readingQueueView: some View {
