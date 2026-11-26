@@ -8,12 +8,21 @@ struct BookApp: App {
     @State private var selection: String? = "biblioteca"
     /// F3 Categorías: plugin común, se crea y se registra siempre (sin trait).
     @State private var categories: CategoryPlugin
+#if ColaLectura
+    /// O8 Cola de lectura: plugin opcional activado con el trait `ColaLectura`.
+    @State private var readingQueue: ReadingQueuePlugin
+#endif
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
     init() {
         let categories = CategoryPlugin()
         PluginRegistry.shared.register(categories)
         _categories = State(wrappedValue: categories)
+#if ColaLectura
+        let readingQueue = ReadingQueuePlugin()
+        PluginRegistry.shared.register(readingQueue)
+        _readingQueue = State(wrappedValue: readingQueue)
+#endif
     }
 
     var body: some Scene {
@@ -22,6 +31,12 @@ struct BookApp: App {
             TabView {
                 BookListView(viewModel: viewModel)
                     .tabItem { Label("Biblioteca", systemImage: "books.vertical.fill") }
+#if ColaLectura
+                NavigationStack {
+                    readingQueueView
+                }
+                .tabItem { Label("Cola", systemImage: "list.number") }
+#endif
                 NavigationStack {
                     StatisticsView(statistics: viewModel.statistics)
                 }
@@ -33,6 +48,9 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if ColaLectura
+            .environment(readingQueue)
+#endif
             .tint(Color.bookAccent)
 #elseif os(macOS)
             NavigationSplitView {
@@ -62,6 +80,11 @@ struct BookApp: App {
                         NavigationLink(value: "biblioteca") {
                             Label("Biblioteca", systemImage: "books.vertical.fill")
                         }
+#if ColaLectura
+                        NavigationLink(value: "cola") {
+                            Label("Cola de lectura", systemImage: "list.number")
+                        }
+#endif
                         NavigationLink(value: "estadisticas") {
                             Label("Hábitos", systemImage: "leaf.fill")
                         }
@@ -75,6 +98,12 @@ struct BookApp: App {
                 switch selection {
                 case "biblioteca":
                     BookListView(viewModel: viewModel)
+#if ColaLectura
+                case "cola":
+                    NavigationStack {
+                        readingQueueView
+                    }
+#endif
                 case "estadisticas":
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
@@ -89,6 +118,9 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if ColaLectura
+            .environment(readingQueue)
+#endif
             .tint(Color.bookAccent)
 #else
             NavigationSplitView {
@@ -96,6 +128,11 @@ struct BookApp: App {
                     NavigationLink(value: "biblioteca") {
                         Label("Biblioteca", systemImage: "books.vertical")
                     }
+#if ColaLectura
+                    NavigationLink(value: "cola") {
+                        Label("Cola de lectura", systemImage: "list.number")
+                    }
+#endif
                     NavigationLink(value: "estadisticas") {
                         Label("Estadísticas", systemImage: "checklist")
                     }
@@ -107,6 +144,12 @@ struct BookApp: App {
                 switch selection {
                 case "biblioteca":
                     BookListView(viewModel: viewModel)
+#if ColaLectura
+                case "cola":
+                    NavigationStack {
+                        readingQueueView
+                    }
+#endif
                 case "estadisticas":
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
@@ -119,10 +162,24 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if ColaLectura
+            .environment(readingQueue)
+#endif
 #endif
         }
 #if os(macOS)
         .defaultSize(width: 1060, height: 740)
 #endif
     }
+
+#if ColaLectura
+    private var readingQueueView: some View {
+        ReadingQueueView(books: viewModel.books) { bookID in
+            if var book = viewModel.book(id: bookID), book.status == .pendiente {
+                book.status = .leyendo
+                viewModel.updateBook(book)
+            }
+        }
+    }
+#endif
 }
