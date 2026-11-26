@@ -2,8 +2,7 @@ import Foundation
 
 /// F1 Progreso: total de páginas, página actual y porcentaje leído.
 /// Va aparte de Book y se enlaza por `bookID`, así el Core no depende de F1.
-/// El tipo se compila siempre (como Priority en TaskApp); lo que depende del
-/// trait Progreso es dónde se guarda y dónde se muestra.
+/// Forma parte de todos los productos de la línea.
 struct ReadingProgress: Codable {
     var bookID: UUID
     var totalPages: Int

@@ -6,6 +6,15 @@ struct BookApp: App {
     @State private var config = AppConfig()
     @State private var viewModel = BookListViewModel()
     @State private var selection: String? = "biblioteca"
+    /// F3 Categorías: plugin común, se crea y se registra siempre (sin trait).
+    @State private var categories: CategoryPlugin
+
+    /// Los plugins se crean y se registran una sola vez, al arrancar la app.
+    init() {
+        let categories = CategoryPlugin()
+        PluginRegistry.shared.register(categories)
+        _categories = State(wrappedValue: categories)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -23,6 +32,7 @@ struct BookApp: App {
                 .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
             }
             .environment(config)
+            .environment(categories)
             .tint(Color.bookAccent)
 #elseif os(macOS)
             NavigationSplitView {
@@ -78,6 +88,7 @@ struct BookApp: App {
                 }
             }
             .environment(config)
+            .environment(categories)
             .tint(Color.bookAccent)
 #else
             NavigationSplitView {
@@ -107,6 +118,7 @@ struct BookApp: App {
                 }
             }
             .environment(config)
+            .environment(categories)
             .tint(Color.bookAccent)
 #endif
         }

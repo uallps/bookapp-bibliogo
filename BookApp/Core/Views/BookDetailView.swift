@@ -4,12 +4,14 @@ import SwiftUI
 /// lo que se edita aquí cambia el libro del ViewModel, sin copias.
 struct BookDetailView: View {
     @Binding var book: Book
-    /// F1 Progreso: nil en el producto sin el trait Progreso.
+    /// F1 Progreso del libro.
     let progress: Binding<ReadingProgress>?
     /// F2 Notas y citas: notas de este libro.
     @Binding var notes: [BookNote]
     /// F4 Valoraciones y reseñas: valoraciones de este libro.
     @Binding var reviews: [BookReview]
+    /// F3 Categorías: la sección ya preparada por la lista. nil si no se muestra.
+    var categories: CategoriesSection? = nil
 
 #if !canImport(SwiftOpenUI)
     @Environment(\.colorScheme) private var colorScheme
@@ -34,11 +36,12 @@ struct BookDetailView: View {
                     heroHeaderCard
                     bookInfoCard
 
-#if Progreso
                     if let progress {
                         ProgressSection(progress: progress)
                     }
-#endif
+                    if let categories {
+                        categories
+                    }
                     NotesSection(notes: $notes, bookID: book.id)
                     RatingsSection(reviews: $reviews, bookID: book.id)
                 }
@@ -194,13 +197,14 @@ struct BookDetailView: View {
                     Text(ReadingStatus.terminado.rawValue).tag(ReadingStatus.terminado)
                 }
             }
-#if Progreso
             if let progress {
                 ProgressSection(progress: progress)
             }
-#endif
             NotesSection(notes: $notes, bookID: book.id)
             RatingsSection(reviews: $reviews, bookID: book.id)
+            if let categories {
+                categories
+            }
         }
         .navigationTitle(book.title)
     }

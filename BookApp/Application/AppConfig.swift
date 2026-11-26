@@ -10,13 +10,18 @@ final class AppConfig {
     var showAuthors: Bool {
         didSet { store(showAuthors, forKey: "showAuthors") }
     }
-    /// F1 Progreso. El ajuste solo aparece en el producto compilado con el trait Progreso.
+    /// F1 Progreso: decide si se ve el progreso en la lista.
     var showProgress: Bool {
         didSet { store(showProgress, forKey: "showProgress") }
     }
     /// F4 Valoraciones: decide si se ve la valoración media en la lista.
     var showRatings: Bool {
         didSet { store(showRatings, forKey: "showRatings") }
+    }
+
+    /// F3 Categorías: decide si se ven en la lista las categorías de cada libro y el filtro.
+    var showCategories: Bool {
+        didSet { store(showCategories, forKey: "showCategories") }
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -26,9 +31,10 @@ final class AppConfig {
         showAuthors = defaults.object(forKey: "showAuthors") as? Bool ?? true
         showProgress = defaults.object(forKey: "showProgress") as? Bool ?? true
         showRatings = defaults.object(forKey: "showRatings") as? Bool ?? true
+        showCategories = defaults.object(forKey: "showCategories") as? Bool ?? true
     }
 
-    private func store(_ value: Bool, forKey key: String) {
+    private func store(_ value: Any, forKey key: String) {
         defaults.set(value, forKey: key)
         // En Linux y Windows, UserDefaults escribe en disco más tarde: lo forzamos ya.
         defaults.synchronize()

@@ -4,6 +4,11 @@ struct BookListView: View {
     var viewModel = BookListViewModel()
     /// La configuración la crea la app y llega por el entorno: es la misma que edita Ajustes.
     @Environment(AppConfig.self) private var config
+    /// F3 Categorías: el plugin llega por el entorno.
+    @Environment(CategoryPlugin.self) private var categoryPlugin
+    /// F3 Categorías: categoría elegida en el filtro (CategoryFilter.all o un uuidString).
+    /// Es estado de la pantalla, no se guarda.
+    @State private var categoryFilter = CategoryFilter.all
 
 #if !canImport(SwiftOpenUI)
     @Environment(\.colorScheme) private var colorScheme
@@ -36,10 +41,20 @@ struct BookListView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: 18) {
                         editorialHeader
                         searchBar
-                        filterPills
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            filterPills
+
+                            if config.showCategories, !categoryPlugin.categories.isEmpty {
+                                CategoryFilterView(
+                                    categories: categoryPlugin.categories,
+                                    selection: $categoryFilter
+                                )
+                            }
+                        }
 
                         if let hero = heroReadingBook {
                             heroReadingCard(book: hero)
@@ -183,7 +198,7 @@ struct BookListView: View {
     }
 
     private var filteredBooks: [Book] {
-        viewModel.books.filter { book in
+        visibleBooks.filter { book in
             let matchesStatus: Bool
             switch selectedFilter {
             case .all:       matchesStatus = true
@@ -217,10 +232,10 @@ struct BookListView: View {
 
     private func countForFilter(_ filter: LibraryFilter) -> Int {
         switch filter {
-        case .all:       return viewModel.books.count
-        case .reading:   return viewModel.books.filter { $0.status == .leyendo }.count
-        case .pending:   return viewModel.books.filter { $0.status == .pendiente }.count
-        case .completed: return viewModel.books.filter { $0.status == .terminado }.count
+        case .all:       return visibleBooks.count
+        case .reading:   return visibleBooks.filter { $0.status == .leyendo }.count
+        case .pending:   return visibleBooks.filter { $0.status == .pendiente }.count
+        case .completed: return visibleBooks.filter { $0.status == .terminado }.count
         }
     }
 
@@ -228,6 +243,7 @@ struct BookListView: View {
         let bookProgress = progress(for: book)
         let avg = viewModel.averageRating(for: book.id)
         let revCount = viewModel.reviews(for: book.id).count
+        let cats = categoryText(for: book)
 
         return VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 16) {
@@ -256,29 +272,46 @@ struct BookListView: View {
                             .foregroundColor(.secondary)
                     }
 
-                    if config.showRatings, let avg, revCount > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .font(.caption2)
-                                .foregroundColor(.bookStar)
-                            Text(String(format: "%.1f", avg))
-                                .font(.caption.weight(.bold))
-                                .foregroundColor(.bookStar)
-                            Text("(\(revCount))")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                    HStack(spacing: 6) {
+                        if config.showRatings, let avg, revCount > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.bookStar)
+                                Text(String(format: "%.1f", avg))
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(.bookStar)
+                                Text("(\(revCount))")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule().fill(Color.bookStarSurface(for: colorScheme))
+                            )
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(Color.bookStarSurface(for: colorScheme))
-                        )
-                        .padding(.top, 2)
+
+                        if let cats {
+                            HStack(spacing: 4) {
+                                Image(systemName: Category.systemImage)
+                                    .font(.system(size: 9))
+                                Text(cats)
+                                    .font(.caption2.weight(.medium))
+                                    .lineLimit(1)
+                            }
+                            .foregroundColor(Color.bookSageForeground(for: colorScheme))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule().fill(Color.bookSageSurface(for: colorScheme))
+                            )
+                        }
                     }
+                    .padding(.top, 2)
                 }
             }
 
-#if Progreso
             if config.showProgress, let bookProgress, bookProgress.totalPages > 0 {
                 VStack(alignment: .leading, spacing: 6) {
                     BiblioProgressBar(
@@ -297,7 +330,6 @@ struct BookListView: View {
                     }
                 }
             }
-#endif
 
             HStack(spacing: 10) {
                 NavigationLink(destination: bookDetailDestination(for: book)) {
@@ -386,7 +418,7 @@ struct BookListView: View {
             Text(searchText.isEmpty ? "No hay libros en esta vista" : "Sin resultados")
                 .font(.system(.headline, design: .serif))
             Text(searchText.isEmpty
-                 ? "Añade un nuevo libro o cambia el filtro superior para explorar tu colección."
+                 ? "Añade un nuevo libro o cambia los filtros superiores para explorar tu colección."
                  : "No encontramos ningún libro que coincida con «\(searchText)».")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -401,7 +433,8 @@ struct BookListView: View {
             book: binding(for: book),
             progress: progressBinding(for: book),
             notes: notesBinding(for: book),
-            reviews: reviewsBinding(for: book)
+            reviews: reviewsBinding(for: book),
+            categories: categoriesSection(for: book)
         )
     }
 #endif
@@ -409,23 +442,16 @@ struct BookListView: View {
     private var openUILibraryBody: some View {
         NavigationStack {
             List {
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("ESPACIO SERENO")
-                            .font(.caption2)
-                            .bold()
-                            .foregroundColor(Color.bookAccent)
-                        Text("Tu momento de calma con las palabras. Sin prisa.")
-                            .font(.subheadline)
-                            .bookCaption()
-                    }
-                    .padding(.vertical, 4)
+                if config.showCategories, !categoryPlugin.categories.isEmpty {
+                    CategoryFilterView(categories: categoryPlugin.categories, selection: $categoryFilter)
                 }
-
-                ForEach(viewModel.books) { book in
+                ForEach(visibleBooks) { book in
                     bookRow(book: book)
                 }
-
+                if visibleBooks.isEmpty, !viewModel.books.isEmpty {
+                    Text("No hay libros en esta categoría")
+                        .bookCaption()
+                }
                 if let quote = recentQuote {
                     Section {
                         recentQuoteCard(quote: quote)
@@ -447,7 +473,8 @@ struct BookListView: View {
             book: binding(for: book),
             progress: progressBinding(for: book),
             notes: notesBinding(for: book),
-            reviews: reviewsBinding(for: book)
+            reviews: reviewsBinding(for: book),
+            categories: categoriesSection(for: book)
         )) {
             BookRowView(
                 book: book,
@@ -457,7 +484,8 @@ struct BookListView: View {
                 showAuthors: config.showAuthors,
                 showProgress: config.showProgress,
                 showRatings: config.showRatings,
-                advanceStatus: { viewModel.advanceStatus(id: book.id) }
+                advanceStatus: { viewModel.advanceStatus(id: book.id) },
+                categoryText: categoryText(for: book)
             )
             .contextMenu {
                 Button("Eliminar libro") {
@@ -479,26 +507,17 @@ struct BookListView: View {
         )
     }
 
-    /// F1 Progreso del libro. Sin el trait Progreso no hay progreso: nil.
+    /// F1 Progreso del libro, si ya tiene.
     private func progress(for book: Book) -> ReadingProgress? {
-#if Progreso
         return viewModel.progress(for: book.id)
-#else
-        return nil
-#endif
     }
 
     /// Enlace al progreso del libro para el detalle. Si aún no tiene, empieza en 0 páginas.
-    /// Sin el trait Progreso devuelve nil y el detalle no muestra la sección.
     private func progressBinding(for book: Book) -> Binding<ReadingProgress>? {
-#if Progreso
         return Binding(
             get: { viewModel.progress(for: book.id) ?? ReadingProgress(bookID: book.id, totalPages: 0, currentPage: 0) },
             set: { viewModel.updateProgress($0) }
         )
-#else
-        return nil
-#endif
     }
 
     /// F2 Notas y citas: enlace a las notas del libro.
@@ -514,6 +533,42 @@ struct BookListView: View {
         Binding(
             get: { viewModel.reviews(for: book.id) },
             set: { viewModel.updateReviews($0, for: book.id) }
+        )
+    }
+
+    /// F3 Categorías: los libros que se ven. Con las categorías ocultas en Ajustes se ven
+    /// todos, para que un filtro olvidado no esconda libros.
+    private var visibleBooks: [Book] {
+        guard config.showCategories else { return viewModel.books }
+        return categoryPlugin.filteredBooks(viewModel.books, selection: categoryFilter)
+    }
+
+    /// F3 Categorías: texto de la fila, por ejemplo "Novela · Clásicos". nil si no tiene.
+    private func categoryText(for book: Book) -> String? {
+        let names = categoryPlugin.categories(for: book.id).map(\.name)
+        guard config.showCategories, !names.isEmpty else { return nil }
+        return names.joined(separator: " · ")
+    }
+
+    /// F3 Categorías: la sección del detalle, con sus Binding al plugin.
+    private func categoriesSection(for book: Book) -> CategoriesSection {
+        // Los Binding se usan más tarde (al pulsar): guardan el plugin, no la propiedad del entorno.
+        let plugin = categoryPlugin
+        return CategoriesSection(
+            allCategories: Binding(
+                get: { plugin.categories },
+                set: { _ in } // la lista de categorías solo cambia con onCreate y onDelete
+            ),
+            selected: Binding(
+                get: { plugin.categoryIDs(for: book.id) },
+                set: { plugin.updateCategories($0, for: book.id) }
+            ),
+            onCreate: { name in
+                if let id = plugin.addCategory(named: name) {
+                    plugin.setCategory(id, selected: true, for: book.id)
+                }
+            },
+            onDelete: { plugin.removeCategory(id: $0) }
         )
     }
 

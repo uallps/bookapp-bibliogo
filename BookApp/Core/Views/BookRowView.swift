@@ -10,6 +10,8 @@ struct BookRowView: View {
     let showProgress: Bool
     var showRatings: Bool = true
     let advanceStatus: () -> Void
+    /// F3 Categorías: por ejemplo "Novela · Clásicos". nil si no hay o no se muestran.
+    var categoryText: String? = nil
 
 #if !canImport(SwiftOpenUI)
     @Environment(\.colorScheme) private var colorScheme
@@ -71,7 +73,18 @@ struct BookRowView: View {
                         .lineLimit(1)
                 }
 
-#if Progreso
+                if let categoryText {
+                    HStack(spacing: 4) {
+                        Image(systemName: Category.systemImage)
+                            .font(.system(size: 9))
+                            .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
+                        Text(categoryText)
+                            .font(.caption2.weight(.medium))
+                            .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
+                            .lineLimit(1)
+                    }
+                }
+
                 if showProgress, let progress, progress.totalPages > 0 {
                     VStack(alignment: .leading, spacing: 4) {
                         BiblioProgressBar(
@@ -85,7 +98,6 @@ struct BookRowView: View {
                     }
                     .padding(.top, 2)
                 }
-#endif
             }
 
             Spacer(minLength: 4)
@@ -147,12 +159,19 @@ struct BookRowView: View {
                         .bookCaption()
                 }
 
-#if Progreso
                 if showProgress, let progress {
                     Text(progressText(progress))
                         .bookCaption(color: progress.color)
                 }
-#endif
+
+                if let categoryText {
+                    HStack(spacing: 3) {
+                        Image(systemName: Category.systemImage)
+                            .foregroundColor(Category.color)
+                        Text(categoryText)
+                            .bookCaption(color: Category.color)
+                    }
+                }
             }
             .padding(.vertical, 4)
         }

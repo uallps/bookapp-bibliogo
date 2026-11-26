@@ -53,7 +53,6 @@ struct SettingsView: View {
                             isOn: $config.showAuthors
                         )
 
-#if Progreso
                         Divider().padding(.leading, 48)
                         settingToggleRow(
                             title: "Mostrar progreso de lectura",
@@ -61,7 +60,6 @@ struct SettingsView: View {
                             icon: "book.pages",
                             isOn: $config.showProgress
                         )
-#endif
 
                         Divider().padding(.leading, 48)
                         settingToggleRow(
@@ -69,6 +67,14 @@ struct SettingsView: View {
                             subtitle: "Ver estrellas y nota media en cada libro",
                             icon: "star.fill",
                             isOn: $config.showRatings
+                        )
+
+                        Divider().padding(.leading, 48)
+                        settingToggleRow(
+                            title: "Mostrar categorías",
+                            subtitle: "Filtrar y mostrar etiquetas de género en la biblioteca",
+                            icon: Category.systemImage,
+                            isOn: $config.showCategories
                         )
                     }
                     .biblioCard(scheme: colorScheme, cornerRadius: 18, padding: 16)
@@ -145,10 +151,9 @@ struct SettingsView: View {
         return Form {
             Section(header: Text("Características")) {
                 Toggle("Mostrar autores", isOn: $config.showAuthors)
-#if Progreso
                 Toggle("Mostrar progreso de lectura", isOn: $config.showProgress)
-#endif
                 Toggle("Mostrar valoraciones", isOn: $config.showRatings)
+                Toggle("Mostrar categorías", isOn: $config.showCategories)
             }
         }
         .navigationTitle("Ajustes")

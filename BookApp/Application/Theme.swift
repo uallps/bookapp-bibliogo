@@ -130,14 +130,12 @@ extension ReadingStatus {
     }
 }
 
-#if Progreso
 extension ReadingProgress {
-    /// Color del progreso: verde al terminar. Solo existe en el producto con progreso.
+    /// Color del progreso: verde al terminar.
     var color: Color {
         percentage >= 100 ? Color(red: 0.20, green: 0.52, blue: 0.34) : Color.bookAccent
     }
 }
-#endif
 
 extension NoteKind {
     /// Icono que identifica visualmente el tipo de anotación.
@@ -155,6 +153,15 @@ extension NoteKind {
         case .quote: return Color(red: 0.48, green: 0.34, blue: 0.46)
         }
     }
+}
+
+extension Category {
+    /// F3: icono de las categorías en la fila.
+    static let systemImage = "tag"
+    /// F3: icono del botón para crear una categoría.
+    static let addSystemImage = "plus.circle"
+    /// F3: color de las categorías en la fila (armonizado con la paleta BiblioGo).
+    static let color = Color(red: 0.16, green: 0.44, blue: 0.44)
 }
 
 #if !canImport(SwiftOpenUI)

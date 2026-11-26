@@ -3,18 +3,14 @@ import Foundation
 /// Guarda la biblioteca en ficheros JSON en la carpeta Documentos del usuario.
 final class JSONStorageProvider: StorageProvider {
     private let fileURL: URL
-#if Progreso
     private let progressURL: URL
-#endif
     private let notesURL: URL
     private let reviewsURL: URL
 
     init(filename: String = "books.json") {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         fileURL = documents.appendingPathComponent(filename)
-#if Progreso
         progressURL = documents.appendingPathComponent("progress.json")
-#endif
         notesURL = documents.appendingPathComponent("notes.json")
         reviewsURL = documents.appendingPathComponent("reviews.json")
     }
@@ -28,7 +24,6 @@ final class JSONStorageProvider: StorageProvider {
         try write(JSONEncoder().encode(books), to: fileURL)
     }
 
-#if Progreso
     func loadProgress() async throws -> [ReadingProgress] {
         let data = try Data(contentsOf: progressURL)
         return try JSONDecoder().decode([ReadingProgress].self, from: data)
@@ -37,7 +32,6 @@ final class JSONStorageProvider: StorageProvider {
     func saveProgress(progress: [ReadingProgress]) async throws {
         try write(JSONEncoder().encode(progress), to: progressURL)
     }
-#endif
 
     func loadNotes() async throws -> [BookNote] {
         let data = try Data(contentsOf: notesURL)
