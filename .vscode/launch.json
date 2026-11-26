@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:bookapp-bibliogo}",
+            "name": "Debug BookApp",
+            "target": "BookApp",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug BookApp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:bookapp-bibliogo}",
+            "name": "Release BookApp",
+            "target": "BookApp",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release BookApp"
+        }
+    ]
+}

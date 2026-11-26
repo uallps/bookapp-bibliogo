@@ -1,0 +1,229 @@
+import Foundation
+import Observation
+
+/// Responsable del listado de libros y de modificar su estado.
+/// Las vistas solo dibujan y avisan de las acciones: todo cambio pasa por aquí.
+@Observable
+final class BookListViewModel {
+    /// Libros de ejemplo, para la primera vez que se abre la app.
+    /// Llevan un id fijo: mientras no se toca la lista no se escribe books.json, y con un
+    /// id nuevo en cada arranque los datos guardados aparte (progreso, valoraciones,
+    /// categorías...) dejarían de encontrar su libro al volver a abrir la app.
+    private static let dune  = Book(id: UUID(uuidString: "6B1D2C4E-0001-4B00-8000-B00C0000D0E1")!,
+                                    title: "Dune", author: "Frank Herbert")
+    private static let junco = Book(id: UUID(uuidString: "6B1D2C4E-0002-4B00-8000-B00C0000D0E2")!,
+                                    title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
+    private static let klara = Book(id: UUID(uuidString: "6B1D2C4E-0003-4B00-8000-B00C0000D0E3")!,
+                                    title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
+
+    /// Cada cambio en la lista (cambiar estado, añadir, borrar o editar en el detalle) se guarda.
+    var books: [Book] = [BookListViewModel.dune, BookListViewModel.junco, BookListViewModel.klara] {
+        didSet { save() }
+    }
+
+    /// F1 Progreso: un registro por libro, enlazado por bookID. Se guarda aparte de los libros.
+    var progress: [ReadingProgress] = BookListViewModel.sampleProgress {
+        didSet { saveProgress() }
+    }
+
+    /// F2 Notas y citas: lista global de notas enlazadas por bookID. Se guarda aparte.
+    var notes: [BookNote] = BookListViewModel.sampleNotes {
+        didSet { saveNotes() }
+    }
+
+    private static let sampleNotes = [
+        BookNote(bookID: junco.id, kind: .quote, text: "La memoria de las palabras impresas nos rescata del olvido cotidiano.", page: 42)
+    ]
+
+    /// F4 Valoraciones y reseñas: lista global de valoraciones enlazadas por bookID. Se guarda aparte.
+    var reviews: [BookReview] = BookListViewModel.sampleReviews {
+        didSet { saveReviews() }
+    }
+
+    private static let sampleReviews = [
+        BookReview(bookID: dune.id, userName: "Elena Vega", rating: 5, comment: "Una obra maestra de la ciencia ficción. El universo es increíblemente detallado.", isUserReview: false),
+        BookReview(bookID: dune.id, userName: "Marcos S.", rating: 4, comment: "Gran historia y personajes, aunque a veces el ritmo es algo lento.", isUserReview: false),
+        BookReview(bookID: junco.id, userName: "Laura Gómez", rating: 5, comment: "Fascinante recorrido por la historia de los libros en la antigüedad.", isUserReview: false),
+        BookReview(bookID: klara.id, userName: "David R.", rating: 4, comment: "Una historia conmovedora sobre la inteligencia artificial y el amor.", isUserReview: false),
+    ]
+
+    /// F5 Estadísticas: recuento total y por estado calculado a partir de los libros actuales.
+    var statistics: BookStatistics {
+        BookStatistics(books: books)
+    }
+
+    private static let sampleProgress = [
+        ReadingProgress(bookID: junco.id, totalPages: 456, currentPage: 120)
+    ]
+
+    @ObservationIgnored private let storageProvider: StorageProvider
+    @ObservationIgnored private var loaded = false
+
+    /// Por defecto guarda en JSON; en pruebas se le pasa un MockStorageProvider.
+    init(storageProvider: StorageProvider = JSONStorageProvider()) {
+        self.storageProvider = storageProvider
+        Task { await loadBooks() }
+    }
+
+    /// Carga los libros guardados, solo la primera vez que se llama.
+    /// Si aún no hay fichero, se quedan los libros de ejemplo.
+    func loadBooks() async {
+        guard !loaded else { return }
+        loaded = true
+        do {
+            books = try await storageProvider.loadBooks()
+        } catch {
+            print("No se han cargado libros: \(error)")
+        }
+        do {
+            progress = try await storageProvider.loadProgress()
+        } catch {
+            print("No se ha cargado el progreso: \(error)")
+        }
+        do {
+            notes = try await storageProvider.loadNotes()
+        } catch {
+            print("No se han cargado las notas: \(error)")
+        }
+        do {
+            let loaded = try await storageProvider.loadReviews()
+            reviews = loaded.isEmpty ? Self.sampleReviews : loaded
+        } catch {
+            print("No se han cargado las valoraciones: \(error)")
+        }
+    }
+
+    /// Pasa el libro al estado siguiente: Pendiente → Leyendo → Terminado → Pendiente.
+    func advanceStatus(id: UUID) {
+        guard let index = books.firstIndex(where: { $0.id == id }) else { return }
+        let oldStatus = books[index].status
+        books[index].status = oldStatus.next
+        PluginRegistry.shared.notifyStatusChanged(of: books[index], from: oldStatus)
+    }
+
+    func addBook() {
+        books.append(Book(title: "Libro nuevo"))
+    }
+
+    /// Borra un libro y sus datos. Los datos de F1, F2 y F4 los borra el ViewModel;
+    /// los de los plugins, cada plugin al recibir el aviso del registro.
+    func removeBook(id: UUID) {
+        guard let book = book(id: id) else { return }
+        PluginRegistry.shared.notifyBookWillBeDeleted(book)
+        books.removeAll { $0.id == id }
+        progress.removeAll { $0.bookID == id }
+        notes.removeAll { $0.bookID == id }
+        reviews.removeAll { $0.bookID == id }
+        PluginRegistry.shared.notifyBookDidDelete(id: id)
+    }
+
+    /// El libro con ese id, si sigue en la lista.
+    func book(id: UUID) -> Book? {
+        books.first { $0.id == id }
+    }
+
+    /// Sustituye el libro que tiene el mismo id (la usa el detalle al editar).
+    /// Core: el título nunca queda vacío; si cambia el estado, avisa a los plugins.
+    func updateBook(_ book: Book) {
+        guard let index = books.firstIndex(where: { $0.id == book.id }) else { return }
+        guard !book.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let oldStatus = books[index].status
+        books[index] = book
+        if oldStatus != book.status {
+            PluginRegistry.shared.notifyStatusChanged(of: book, from: oldStatus)
+        }
+    }
+
+    /// El progreso de un libro, si ya tiene.
+    func progress(for bookID: UUID) -> ReadingProgress? {
+        progress.first { $0.bookID == bookID }
+    }
+
+    /// Sustituye el progreso de ese libro, o lo añade si aún no tenía.
+    func updateProgress(_ newProgress: ReadingProgress) {
+        if let index = progress.firstIndex(where: { $0.bookID == newProgress.bookID }) {
+            progress[index] = newProgress
+        } else {
+            progress.append(newProgress)
+        }
+    }
+
+    /// Las notas del libro con ese id.
+    func notes(for bookID: UUID) -> [BookNote] {
+        notes.filter { $0.bookID == bookID }
+    }
+
+    /// Reemplaza todas las notas de un libro de golpe (lo llama el detalle via Binding).
+    func updateNotes(_ newNotes: [BookNote], for bookID: UUID) {
+        notes.removeAll { $0.bookID == bookID }
+        notes.append(contentsOf: newNotes)
+    }
+
+    /// Las valoraciones del libro con ese id.
+    func reviews(for bookID: UUID) -> [BookReview] {
+        reviews.filter { $0.bookID == bookID }
+    }
+
+    /// Valoración media del libro (1.0 - 5.0), o nil si no tiene valoraciones.
+    func averageRating(for bookID: UUID) -> Double? {
+        let bookReviews = reviews(for: bookID)
+        guard !bookReviews.isEmpty else { return nil }
+        let total = bookReviews.reduce(0) { $0 + $1.rating }
+        return Double(total) / Double(bookReviews.count)
+    }
+
+    /// Reemplaza todas las valoraciones de un libro de golpe (lo llama el detalle via Binding).
+    func updateReviews(_ newReviews: [BookReview], for bookID: UUID) {
+        reviews.removeAll { $0.bookID == bookID }
+        reviews.append(contentsOf: newReviews)
+    }
+
+    // MARK: - Guardado en segundo plano
+
+    /// Guarda la lista completa en segundo plano. Aquí `Task` es la tarea asíncrona
+    /// de Swift; en TaskApp hay que escribir `_Concurrency.Task` porque su modelo
+    /// se llama igual, pero en BookApp no hay ese choque de nombres.
+    private func save() {
+        let books = books
+        Task {
+            do {
+                try await storageProvider.saveBooks(books: books)
+            } catch {
+                print("No se han guardado los libros: \(error)")
+            }
+        }
+    }
+
+    private func saveProgress() {
+        let progress = progress
+        Task {
+            do {
+                try await storageProvider.saveProgress(progress: progress)
+            } catch {
+                print("No se ha guardado el progreso: \(error)")
+            }
+        }
+    }
+
+    private func saveNotes() {
+        let notes = notes
+        Task {
+            do {
+                try await storageProvider.saveNotes(notes: notes)
+            } catch {
+                print("No se han guardado las notas: \(error)")
+            }
+        }
+    }
+
+    private func saveReviews() {
+        let reviews = reviews
+        Task {
+            do {
+                try await storageProvider.saveReviews(reviews: reviews)
+            } catch {
+                print("No se han guardado las valoraciones: \(error)")
+            }
+        }
+    }
+}
