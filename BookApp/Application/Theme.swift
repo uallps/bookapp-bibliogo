@@ -155,15 +155,6 @@ extension NoteKind {
     }
 }
 
-extension Category {
-    /// F3: icono de las categorías en la fila.
-    static let systemImage = "tag"
-    /// F3: icono del botón para crear una categoría.
-    static let addSystemImage = "plus.circle"
-    /// F3: color de las categorías en la fila (armonizado con la paleta BiblioGo).
-    static let color = Color(red: 0.16, green: 0.44, blue: 0.44)
-}
-
 #if !canImport(SwiftOpenUI)
 /// Portada artesanal generada determinísticamente a partir del título del libro.
 /// Aporta riqueza visual estilo editorial sin necesidad de imágenes externas.

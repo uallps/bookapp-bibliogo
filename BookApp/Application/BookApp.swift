@@ -2,27 +2,25 @@ import SwiftUI
 
 @main
 struct BookApp: App {
-    /// Una sola configuración para toda la app: la comparten Biblioteca y Ajustes.
-    @State private var config = AppConfig()
-    @State private var viewModel = BookListViewModel()
+    /// Una sola configuración para toda la app: la comparten Biblioteca, Ajustes y los plugins.
+    @State private var config: AppConfig
+    @State private var viewModel: BookListViewModel
     @State private var selection: String? = "biblioteca"
-    /// F3 Categorías: plugin común, se crea y se registra siempre (sin trait).
-    @State private var categories: CategoryPlugin
-#if Sugerencia
-    /// O1 Sugerencia de próxima lectura: plugin opcional controlado por el trait `Sugerencia`.
-    @State private var suggestions: SuggestionPlugin
-#endif
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
+    /// Es el único sitio del código que nombra cada plugin.
     init() {
-        let categories = CategoryPlugin()
-        PluginRegistry.shared.register(categories)
-        _categories = State(wrappedValue: categories)
-#if Sugerencia
-        let suggestions = SuggestionPlugin()
-        PluginRegistry.shared.register(suggestions)
-        _suggestions = State(wrappedValue: suggestions)
-#endif
+        let config = AppConfig()
+        // La biblioteca: los plugins que necesitan los libros (o cambiarlos) la reciben al crearse.
+        let viewModel = BookListViewModel()
+        // F3 Categorías: plugin común, se registra siempre (sin trait).
+        PluginRegistry.shared.register(CategoryPlugin(config: config))
+        // Las originales se registran aquí, cada una dentro de su trait:
+        // #if Sagas
+        // PluginRegistry.shared.register(SagaPlugin(config: config, library: viewModel))
+        // #endif
+        _config = State(wrappedValue: config)
+        _viewModel = State(wrappedValue: viewModel)
     }
 
     var body: some Scene {
@@ -35,22 +33,19 @@ struct BookApp: App {
                     StatisticsView(statistics: viewModel.statistics)
                 }
                 .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
-#if Sugerencia
-                NavigationStack {
-                    NextReadingSuggestionView(viewModel: viewModel)
+                // Las pantallas propias de los plugins activos.
+                ForEach(PluginRegistry.shared.screens()) { screen in
+                    NavigationStack {
+                        screen.view
+                    }
+                    .tabItem { Label(screen.title, systemImage: screen.systemImage) }
                 }
-                .tabItem { Label("Sugerencia", systemImage: "sparkles") }
-#endif
                 NavigationStack {
                     SettingsView()
                 }
                 .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
             }
             .environment(config)
-            .environment(categories)
-#if Sugerencia
-            .environment(suggestions)
-#endif
             .tint(Color.bookAccent)
 #elseif os(macOS)
             NavigationSplitView {
@@ -83,11 +78,12 @@ struct BookApp: App {
                         NavigationLink(value: "estadisticas") {
                             Label("Hábitos", systemImage: "leaf.fill")
                         }
-#if Sugerencia
-                        NavigationLink(value: "sugerencia") {
-                            Label("Sugerencia", systemImage: "sparkles")
+                        // Las pantallas propias de los plugins activos.
+                        ForEach(PluginRegistry.shared.screens()) { screen in
+                            NavigationLink(value: screen.tag) {
+                                Label(screen.title, systemImage: screen.systemImage)
+                            }
                         }
-#endif
                         NavigationLink(value: "ajustes") {
                             Label("Ajustes", systemImage: "slider.horizontal.3")
                         }
@@ -102,25 +98,21 @@ struct BookApp: App {
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
                     }
-#if Sugerencia
-                case "sugerencia":
-                    NavigationStack {
-                        NextReadingSuggestionView(viewModel: viewModel)
-                    }
-#endif
                 case "ajustes":
                     NavigationStack {
                         SettingsView()
                     }
                 default:
-                    BookListView(viewModel: viewModel)
+                    if let screen = PluginRegistry.shared.screen(tag: selection) {
+                        NavigationStack {
+                            screen.view
+                        }
+                    } else {
+                        BookListView(viewModel: viewModel)
+                    }
                 }
             }
             .environment(config)
-            .environment(categories)
-#if Sugerencia
-            .environment(suggestions)
-#endif
             .tint(Color.bookAccent)
 #else
             NavigationSplitView {
@@ -131,11 +123,12 @@ struct BookApp: App {
                     NavigationLink(value: "estadisticas") {
                         Label("Estadísticas", systemImage: "checklist")
                     }
-#if Sugerencia
-                    NavigationLink(value: "sugerencia") {
-                        Label("Sugerencia", systemImage: "sparkles")
+                    // Las pantallas propias de los plugins activos.
+                    ForEach(PluginRegistry.shared.screens()) { screen in
+                        NavigationLink(value: screen.tag) {
+                            Label(screen.title, systemImage: screen.systemImage)
+                        }
                     }
-#endif
                     NavigationLink(value: "ajustes") {
                         Label("Ajustes", systemImage: "gearshape")
                     }
@@ -148,23 +141,19 @@ struct BookApp: App {
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
                     }
-#if Sugerencia
-                case "sugerencia":
-                    NavigationStack {
-                        NextReadingSuggestionView(viewModel: viewModel)
-                    }
-#endif
                 case "ajustes":
                     SettingsView()
                 default:
-                    Text("Elige una opción")
+                    if let screen = PluginRegistry.shared.screen(tag: selection) {
+                        NavigationStack {
+                            screen.view
+                        }
+                    } else {
+                        Text("Elige una opción")
+                    }
                 }
             }
             .environment(config)
-            .environment(categories)
-#if Sugerencia
-            .environment(suggestions)
-#endif
 #endif
         }
 #if os(macOS)
