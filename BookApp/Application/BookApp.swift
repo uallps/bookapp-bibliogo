@@ -2,27 +2,30 @@ import SwiftUI
 
 @main
 struct BookApp: App {
-    /// Una sola configuración para toda la app: la comparten Biblioteca y Ajustes.
-    @State private var config = AppConfig()
-    @State private var viewModel = BookListViewModel()
+    /// Una sola configuración para toda la app: la comparten Biblioteca, Ajustes y los plugins.
+    @State private var config: AppConfig
+    @State private var viewModel: BookListViewModel
     @State private var selection: String? = "biblioteca"
-    /// F3 Categorías: plugin común, se crea y se registra siempre (sin trait).
-    @State private var categories: CategoryPlugin
 #if ColaLectura
     /// O8 Cola de lectura: plugin opcional activado con el trait `ColaLectura`.
     @State private var readingQueue: ReadingQueuePlugin
 #endif
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
+    /// Es el único sitio del código que nombra cada plugin.
     init() {
-        let categories = CategoryPlugin()
-        PluginRegistry.shared.register(categories)
-        _categories = State(wrappedValue: categories)
+        let config = AppConfig()
+        // La biblioteca: los plugins que necesitan los libros (o cambiarlos) la reciben al crearse.
+        let viewModel = BookListViewModel()
+        // F3 Categorías: plugin común, se registra siempre (sin trait).
+        PluginRegistry.shared.register(CategoryPlugin(config: config))
 #if ColaLectura
         let readingQueue = ReadingQueuePlugin()
         PluginRegistry.shared.register(readingQueue)
         _readingQueue = State(wrappedValue: readingQueue)
 #endif
+        _config = State(wrappedValue: config)
+        _viewModel = State(wrappedValue: viewModel)
     }
 
     var body: some Scene {
@@ -41,13 +44,19 @@ struct BookApp: App {
                     StatisticsView(statistics: viewModel.statistics)
                 }
                 .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
+                // Las pantallas propias de los plugins activos.
+                ForEach(PluginRegistry.shared.screens()) { screen in
+                    NavigationStack {
+                        screen.view
+                    }
+                    .tabItem { Label(screen.title, systemImage: screen.systemImage) }
+                }
                 NavigationStack {
                     SettingsView()
                 }
                 .tabItem { Label("Ajustes", systemImage: "slider.horizontal.3") }
             }
             .environment(config)
-            .environment(categories)
 #if ColaLectura
             .environment(readingQueue)
 #endif
@@ -88,6 +97,12 @@ struct BookApp: App {
                         NavigationLink(value: "estadisticas") {
                             Label("Hábitos", systemImage: "leaf.fill")
                         }
+                        // Las pantallas propias de los plugins activos.
+                        ForEach(PluginRegistry.shared.screens()) { screen in
+                            NavigationLink(value: screen.tag) {
+                                Label(screen.title, systemImage: screen.systemImage)
+                            }
+                        }
                         NavigationLink(value: "ajustes") {
                             Label("Ajustes", systemImage: "slider.horizontal.3")
                         }
@@ -113,11 +128,16 @@ struct BookApp: App {
                         SettingsView()
                     }
                 default:
-                    BookListView(viewModel: viewModel)
+                    if let screen = PluginRegistry.shared.screen(tag: selection) {
+                        NavigationStack {
+                            screen.view
+                        }
+                    } else {
+                        BookListView(viewModel: viewModel)
+                    }
                 }
             }
             .environment(config)
-            .environment(categories)
 #if ColaLectura
             .environment(readingQueue)
 #endif
@@ -135,6 +155,12 @@ struct BookApp: App {
 #endif
                     NavigationLink(value: "estadisticas") {
                         Label("Estadísticas", systemImage: "checklist")
+                    }
+                    // Las pantallas propias de los plugins activos.
+                    ForEach(PluginRegistry.shared.screens()) { screen in
+                        NavigationLink(value: screen.tag) {
+                            Label(screen.title, systemImage: screen.systemImage)
+                        }
                     }
                     NavigationLink(value: "ajustes") {
                         Label("Ajustes", systemImage: "gearshape")
@@ -157,11 +183,16 @@ struct BookApp: App {
                 case "ajustes":
                     SettingsView()
                 default:
-                    Text("Elige una opción")
+                    if let screen = PluginRegistry.shared.screen(tag: selection) {
+                        NavigationStack {
+                            screen.view
+                        }
+                    } else {
+                        Text("Elige una opción")
+                    }
                 }
             }
             .environment(config)
-            .environment(categories)
 #if ColaLectura
             .environment(readingQueue)
 #endif
