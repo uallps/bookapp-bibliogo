@@ -72,6 +72,9 @@ Cada característica original es un plugin en su carpeta de `Features/`. El núc
 
 Todos los métodos tienen una versión por defecto que no hace nada, así que cada plugin implementa solo lo que necesita. `isEnabled` decide si sus vistas se ven (normalmente, un ajuste); su ajuste se ve siempre. F3 Categorías es el ejemplo completo.
 
+- Si el plugin necesita los libros o cambiarlos (por ejemplo, empezar a leer uno), recibe la biblioteca al crearse: `MiPlugin(config: config, library: viewModel)`.
+- Los plugins ya no se ponen en el entorno con `.environment(...)`: sus vistas reciben el plugin o sus datos como parámetros.
+
 ## Flujo de trabajo
 
 - `main`: solo las entregas finales.

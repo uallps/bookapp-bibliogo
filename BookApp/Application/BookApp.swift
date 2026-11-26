@@ -4,20 +4,23 @@ import SwiftUI
 struct BookApp: App {
     /// Una sola configuración para toda la app: la comparten Biblioteca, Ajustes y los plugins.
     @State private var config: AppConfig
-    @State private var viewModel = BookListViewModel()
+    @State private var viewModel: BookListViewModel
     @State private var selection: String? = "biblioteca"
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
     /// Es el único sitio del código que nombra cada plugin.
     init() {
         let config = AppConfig()
+        // La biblioteca: los plugins que necesitan los libros (o cambiarlos) la reciben al crearse.
+        let viewModel = BookListViewModel()
         // F3 Categorías: plugin común, se registra siempre (sin trait).
         PluginRegistry.shared.register(CategoryPlugin(config: config))
         // Las originales se registran aquí, cada una dentro de su trait:
         // #if Sagas
-        // PluginRegistry.shared.register(SagaPlugin(config: config))
+        // PluginRegistry.shared.register(SagaPlugin(config: config, library: viewModel))
         // #endif
         _config = State(wrappedValue: config)
+        _viewModel = State(wrappedValue: viewModel)
     }
 
     var body: some Scene {
