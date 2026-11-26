@@ -4,9 +4,151 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppConfig.self) private var config
 
+#if !canImport(SwiftOpenUI)
+    @Environment(\.colorScheme) private var colorScheme
+#endif
+
     var body: some View {
+#if !canImport(SwiftOpenUI)
+        appleSettingsBody
+#else
+        openUISettingsBody
+#endif
+    }
+
+#if !canImport(SwiftOpenUI)
+    private var appleSettingsBody: some View {
         @Bindable var config = config
-        Form {
+        return ZStack {
+            Color.bookBackground(for: colorScheme)
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.caption2)
+                                .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
+                            Text("PREFERENCIAS")
+                                .font(.caption2.weight(.bold))
+                                .tracking(1.3)
+                                .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
+                        }
+
+                        Text("Ajustes")
+                            .font(.system(size: 30, weight: .bold, design: .serif))
+                            .foregroundColor(.primary)
+
+                        Text("Personaliza qué detalles aparecen en tu biblioteca.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+
+                    VStack(spacing: 0) {
+                        settingToggleRow(
+                            title: "Mostrar autores",
+                            subtitle: "Ver el nombre del autor debajo del título",
+                            icon: "person.text.rectangle",
+                            isOn: $config.showAuthors
+                        )
+
+                        Divider().padding(.leading, 48)
+                        settingToggleRow(
+                            title: "Mostrar progreso de lectura",
+                            subtitle: "Mostrar barra de avance y páginas leídas",
+                            icon: "book.pages",
+                            isOn: $config.showProgress
+                        )
+
+                        Divider().padding(.leading, 48)
+                        settingToggleRow(
+                            title: "Mostrar valoraciones",
+                            subtitle: "Ver estrellas y nota media en cada libro",
+                            icon: "star.fill",
+                            isOn: $config.showRatings
+                        )
+
+                        Divider().padding(.leading, 48)
+                        settingToggleRow(
+                            title: "Mostrar categorías",
+                            subtitle: "Filtrar y mostrar etiquetas de género en la biblioteca",
+                            icon: Category.systemImage,
+                            isOn: $config.showCategories
+                        )
+                    }
+                    .biblioCard(scheme: colorScheme, cornerRadius: 18, padding: 16)
+
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.bookAccent)
+                                .frame(width: 38, height: 38)
+                            Image(systemName: "book.pages.fill")
+                                .font(.subheadline)
+                                .foregroundColor(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("BiblioGo")
+                                .font(.system(.subheadline, design: .serif).bold())
+                            Text("Tu espacio de lectura consciente")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .biblioCard(scheme: colorScheme, cornerRadius: 16, padding: 14)
+                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 18)
+                .frame(maxWidth: 680)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .navigationTitle("")
+#if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
+    }
+
+    private var horizontalPadding: CGFloat {
+#if os(macOS)
+        return 28
+#else
+        return 18
+#endif
+    }
+
+    private func settingToggleRow(title: String, subtitle: String, icon: String, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.subheadline)
+                .foregroundColor(Color.bookAccentAdaptive(for: colorScheme))
+                .frame(width: 34, height: 34)
+                .background(
+                    Circle().fill(Color.bookSageSurface(for: colorScheme))
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+        }
+        .padding(.vertical, 8)
+    }
+#endif
+
+    private var openUISettingsBody: some View {
+        @Bindable var config = config
+        return Form {
             Section(header: Text("Características")) {
                 Toggle("Mostrar autores", isOn: $config.showAuthors)
                 Toggle("Mostrar progreso de lectura", isOn: $config.showProgress)

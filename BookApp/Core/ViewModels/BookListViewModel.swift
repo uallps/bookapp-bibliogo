@@ -27,9 +27,13 @@ final class BookListViewModel {
     }
 
     /// F2 Notas y citas: lista global de notas enlazadas por bookID. Se guarda aparte.
-    var notes: [BookNote] = [] {
+    var notes: [BookNote] = BookListViewModel.sampleNotes {
         didSet { saveNotes() }
     }
+
+    private static let sampleNotes = [
+        BookNote(bookID: junco.id, kind: .quote, text: "La memoria de las palabras impresas nos rescata del olvido cotidiano.", page: 42)
+    ]
 
     /// F4 Valoraciones y reseñas: lista global de valoraciones enlazadas por bookID. Se guarda aparte.
     var reviews: [BookReview] = BookListViewModel.sampleReviews {

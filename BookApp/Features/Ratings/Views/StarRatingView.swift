@@ -12,7 +12,7 @@ struct StarRatingView: View {
                     rating = star
                 } label: {
                     Image(systemName: star <= rating ? "star.fill" : "star")
-                        .foregroundColor(star <= rating ? .orange : .secondary)
+                        .foregroundColor(star <= rating ? .bookStar : .secondary)
                         .font(.title3)
                 }
                 .buttonStyle(.plain)
@@ -30,7 +30,7 @@ struct StaticStarRatingView: View {
         HStack(spacing: 2) {
             ForEach(1..<(maxRating + 1), id: \.self) { star in
                 Image(systemName: star <= rating ? "star.fill" : "star")
-                    .foregroundColor(star <= rating ? .orange : .secondary)
+                    .foregroundColor(star <= rating ? .bookStar : .secondary)
                     .font(.caption)
             }
         }
