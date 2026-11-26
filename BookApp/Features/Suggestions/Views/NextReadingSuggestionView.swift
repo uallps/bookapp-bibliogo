@@ -5,7 +5,7 @@ import SwiftUI
 /// (aleatoria o por tiempo y extensión).
 struct NextReadingSuggestionView: View {
     var viewModel: BookListViewModel
-    @Environment(SuggestionPlugin.self) private var plugin
+    var plugin: SuggestionPlugin
     @Environment(AppConfig.self) private var config
 
 #if !canImport(SwiftOpenUI)

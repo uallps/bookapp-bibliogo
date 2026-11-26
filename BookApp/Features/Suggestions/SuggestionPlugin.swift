@@ -1,19 +1,24 @@
 #if Sugerencia
-import Foundation
+import SwiftUI
 import Observation
 
 /// Plugin de O1 Sugerencia de próxima lectura.
-/// Se registra en el núcleo mediante PluginRegistry sin modificar el Core.
+/// Cumple ViewPlugin para aportar su pantalla propia en la barra lateral sin que el núcleo la conozca.
 @Observable
-final class SuggestionPlugin: FeaturePlugin {
+final class SuggestionPlugin: ViewPlugin {
     let name = "Sugerencia de próxima lectura"
 
     var criteria = SuggestionCriteria()
     private(set) var currentSuggestion: BookSuggestion?
 
+    @ObservationIgnored private let library: BookListViewModel
     @ObservationIgnored private let strategy: SuggestionStrategy
 
-    init(strategy: SuggestionStrategy = ActiveSuggestionStrategy.current) {
+    init(
+        library: BookListViewModel,
+        strategy: SuggestionStrategy = ActiveSuggestionStrategy.current
+    ) {
+        self.library = library
         self.strategy = strategy
     }
 
@@ -39,6 +44,17 @@ final class SuggestionPlugin: FeaturePlugin {
             criteria: criteria,
             excluding: excludedID
         )
+    }
+
+    // MARK: - ViewPlugin
+
+    typealias ScreenContent = NextReadingSuggestionView
+    var screenTitle: String? { "Sugerencia" }
+    var screenSystemImage: String { "sparkles" }
+
+    @ViewBuilder
+    func screenView() -> NextReadingSuggestionView {
+        NextReadingSuggestionView(viewModel: library, plugin: self)
     }
 }
 #endif
