@@ -70,7 +70,7 @@ Cada característica original es un plugin en su carpeta de `Features/`. El núc
 | `DataPlugin` | Mantener sus datos al día | `willDeleteBook`, `didDeleteBook`, `didChangeStatus` |
 | `ViewPlugin` | Aportar vistas en puntos fijos | `bookRowView(for:)`, `bookDetailView(for:)`, `settingsView()`, `libraryView()`, `filterBooks(_:)`, `screenTitle` y `screenView()` |
 
-Todos los métodos tienen una versión por defecto que no hace nada, así que cada plugin implementa solo lo que necesita. `isEnabled` decide si sus vistas se ven (normalmente, un ajuste); su ajuste se ve siempre. F3 Categorías es el ejemplo completo.
+Las cinco vistas son obligatorias: en los puntos que no usa, el plugin devuelve `EmptyView()` (por ejemplo, `func screenView() -> EmptyView { EmptyView() }`) y el registro no lo muestra. No llevan versión por defecto porque Swift la elegiría en lugar de la del plugin y su vista no se vería. `filterBooks`, `screenTitle` e `isEnabled` sí tienen versión por defecto. `isEnabled` decide si sus vistas se ven (normalmente, un ajuste); su ajuste se ve siempre. F3 Categorías es el ejemplo completo.
 
 - Si el plugin necesita los libros o cambiarlos (por ejemplo, empezar a leer uno), recibe la biblioteca al crearse: `MiPlugin(config: config, library: viewModel)`.
 - Los plugins ya no se ponen en el entorno con `.environment(...)`: sus vistas reciben el plugin o sus datos como parámetros.

@@ -176,6 +176,9 @@ final class CategoryPlugin: DataPlugin, ViewPlugin {
         CategoryFilter.books(books, selection: filterSelection, in: data)
     }
 
+    /// Las categorías no tienen pantalla propia.
+    func screenView() -> EmptyView { EmptyView() }
+
     private func save() {
         let data = data
         Task {
