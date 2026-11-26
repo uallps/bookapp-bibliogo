@@ -315,7 +315,7 @@ struct BookListView: View {
             HStack(spacing: 10) {
                 NavigationLink(destination: bookDetailDestination(for: book)) {
                     HStack(spacing: 8) {
-                        Image(systemName: "book.open.fill")
+                        Image(systemName: "book.fill")
                             .font(.subheadline)
                         Text("Abrir lectura")
                             .font(.subheadline.weight(.semibold))
