@@ -19,6 +19,10 @@ struct BookApp: App {
         // #if Sagas
         // PluginRegistry.shared.register(SagaPlugin(config: config, library: viewModel))
         // #endif
+#if ResumenAnual
+        // O4 Resumen anual (Hugo).
+        PluginRegistry.shared.register(AnnualSummaryPlugin(library: viewModel))
+#endif
         _config = State(wrappedValue: config)
         _viewModel = State(wrappedValue: viewModel)
     }
