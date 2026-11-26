@@ -96,7 +96,7 @@ final class PluginRegistry {
         enabledViewPlugins.compactMap { plugin in
             guard let title = plugin.screenTitle else { return nil }
             return PluginScreen(
-                id: plugin.name,
+                pluginName: plugin.name,
                 title: title,
                 systemImage: plugin.screenSystemImage,
                 view: AnyView(plugin.screenView())
@@ -128,12 +128,24 @@ struct PluginView: Identifiable {
 
 /// La pantalla propia de un plugin, para la barra lateral.
 struct PluginScreen: Identifiable {
-    /// El nombre del plugin.
+    /// Valor de su enlace en la barra lateral ("plugin:" y el nombre del plugin),
+    /// distinto de los del núcleo ("biblioteca", "ajustes"...).
+    ///
+    /// Es también su `id` a propósito: dentro de un `List(selection:)`, el `ForEach`
+    /// etiqueta cada fila con el id de su elemento, y esa etiqueta es la que llega a la
+    /// selección. Si id y valor del enlace fueran distintos, al pulsar la pantalla la
+    /// selección no coincidiría con ninguna y no se abriría.
     let id: String
     let title: String
     let systemImage: String
     let view: AnyView
 
-    /// Valor de su enlace en la barra lateral, distinto de los del núcleo.
-    var tag: String { "plugin:\(id)" }
+    init(pluginName: String, title: String, systemImage: String, view: AnyView) {
+        id = "plugin:" + pluginName
+        self.title = title
+        self.systemImage = systemImage
+        self.view = view
+    }
+
+    var tag: String { id }
 }
