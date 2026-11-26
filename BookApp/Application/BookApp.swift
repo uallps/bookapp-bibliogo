@@ -8,12 +8,21 @@ struct BookApp: App {
     @State private var selection: String? = "biblioteca"
     /// F3 Categorías: plugin común, se crea y se registra siempre (sin trait).
     @State private var categories: CategoryPlugin
+#if Sugerencia
+    /// O1 Sugerencia de próxima lectura: plugin opcional controlado por el trait `Sugerencia`.
+    @State private var suggestions: SuggestionPlugin
+#endif
 
     /// Los plugins se crean y se registran una sola vez, al arrancar la app.
     init() {
         let categories = CategoryPlugin()
         PluginRegistry.shared.register(categories)
         _categories = State(wrappedValue: categories)
+#if Sugerencia
+        let suggestions = SuggestionPlugin()
+        PluginRegistry.shared.register(suggestions)
+        _suggestions = State(wrappedValue: suggestions)
+#endif
     }
 
     var body: some Scene {
@@ -26,6 +35,12 @@ struct BookApp: App {
                     StatisticsView(statistics: viewModel.statistics)
                 }
                 .tabItem { Label("Hábitos", systemImage: "leaf.fill") }
+#if Sugerencia
+                NavigationStack {
+                    NextReadingSuggestionView(viewModel: viewModel)
+                }
+                .tabItem { Label("Sugerencia", systemImage: "sparkles") }
+#endif
                 NavigationStack {
                     SettingsView()
                 }
@@ -33,6 +48,9 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if Sugerencia
+            .environment(suggestions)
+#endif
             .tint(Color.bookAccent)
 #elseif os(macOS)
             NavigationSplitView {
@@ -65,6 +83,11 @@ struct BookApp: App {
                         NavigationLink(value: "estadisticas") {
                             Label("Hábitos", systemImage: "leaf.fill")
                         }
+#if Sugerencia
+                        NavigationLink(value: "sugerencia") {
+                            Label("Sugerencia", systemImage: "sparkles")
+                        }
+#endif
                         NavigationLink(value: "ajustes") {
                             Label("Ajustes", systemImage: "slider.horizontal.3")
                         }
@@ -79,6 +102,12 @@ struct BookApp: App {
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
                     }
+#if Sugerencia
+                case "sugerencia":
+                    NavigationStack {
+                        NextReadingSuggestionView(viewModel: viewModel)
+                    }
+#endif
                 case "ajustes":
                     NavigationStack {
                         SettingsView()
@@ -89,6 +118,9 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if Sugerencia
+            .environment(suggestions)
+#endif
             .tint(Color.bookAccent)
 #else
             NavigationSplitView {
@@ -99,6 +131,11 @@ struct BookApp: App {
                     NavigationLink(value: "estadisticas") {
                         Label("Estadísticas", systemImage: "checklist")
                     }
+#if Sugerencia
+                    NavigationLink(value: "sugerencia") {
+                        Label("Sugerencia", systemImage: "sparkles")
+                    }
+#endif
                     NavigationLink(value: "ajustes") {
                         Label("Ajustes", systemImage: "gearshape")
                     }
@@ -111,6 +148,12 @@ struct BookApp: App {
                     NavigationStack {
                         StatisticsView(statistics: viewModel.statistics)
                     }
+#if Sugerencia
+                case "sugerencia":
+                    NavigationStack {
+                        NextReadingSuggestionView(viewModel: viewModel)
+                    }
+#endif
                 case "ajustes":
                     SettingsView()
                 default:
@@ -119,6 +162,9 @@ struct BookApp: App {
             }
             .environment(config)
             .environment(categories)
+#if Sugerencia
+            .environment(suggestions)
+#endif
 #endif
         }
 #if os(macOS)
