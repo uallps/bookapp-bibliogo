@@ -8,7 +8,7 @@ struct CategoryData: Codable {
     var links: [BookCategory] = []
 
     /// Categorías de partida, la primera vez que se abre la app. No se enlazan a los
-    /// libros de ejemplo porque estos cambian de id en cada arranque hasta que se guardan.
+    /// libros de ejemplo para que el plugin no dependa de los datos de ejemplo del Core.
     static let sample = CategoryData(categories: [
         Category(name: "Novela"),
         Category(name: "Ciencia ficción"),

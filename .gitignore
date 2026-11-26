@@ -68,3 +68,4 @@ DerivedData/
 shots/
 *-out.txt
 *-err.txt
+build.log

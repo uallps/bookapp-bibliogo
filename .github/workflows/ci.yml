@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compilar los productos del proyecto de Xcode
         run: |
-          for scheme in "BookApp"; do
+          for scheme in "BookApp" "BookApp Completa"; do
             xcodebuild -project BookApp.xcodeproj -scheme "$scheme" -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
           done
 
@@ -28,6 +28,8 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libgtk-4-dev libfontconfig-dev xvfb xdotool imagemagick fonts-dejavu
       - name: Compilar
         run: swift build --product BookApp
+      - name: Compilar el producto con todas las originales
+        run: swift build --product BookApp --traits Sugerencia,Logros,Importacion,ResumenAnual,Autores,Sagas,Portadas,ColaLectura,Exportacion,Gastos
       - name: Arrancar y probar la interfaz (producto base)
         run: bash .github/scripts/linux-ui.sh
       - uses: actions/upload-artifact@v4
@@ -57,6 +59,8 @@ jobs:
         run: swift build --product BookApp
       - name: Arrancar y probar la interfaz
         run: ./.github/scripts/windows-ui.ps1
+      - name: Compilar el producto con todas las originales
+        run: swift build --product BookApp --traits Sugerencia,Logros,Importacion,ResumenAnual,Autores,Sagas,Portadas,ColaLectura,Exportacion,Gastos
       - uses: actions/upload-artifact@v4
         if: always()
         with:
