@@ -10,6 +10,8 @@ struct BookDetailView: View {
     @Binding var notes: [BookNote]
     /// F4 Valoraciones y reseñas: valoraciones de este libro.
     @Binding var reviews: [BookReview]
+    /// F3 Categorías: la sección ya preparada por la lista. nil si no se muestra.
+    var categories: CategoriesSection? = nil
 
     var body: some View {
         Form {
@@ -25,6 +27,9 @@ struct BookDetailView: View {
             }
             NotesSection(notes: $notes, bookID: book.id)
             RatingsSection(reviews: $reviews, bookID: book.id)
+            if let categories {
+                categories
+            }
         }
         .navigationTitle(book.title)
     }

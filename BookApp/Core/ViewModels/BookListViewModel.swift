@@ -6,9 +6,15 @@ import Observation
 @Observable
 final class BookListViewModel {
     /// Libros de ejemplo, para la primera vez que se abre la app.
-    private static let dune  = Book(title: "Dune", author: "Frank Herbert")
-    private static let junco = Book(title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
-    private static let klara = Book(title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
+    /// Llevan un id fijo: mientras no se toca la lista no se escribe books.json, y con un
+    /// id nuevo en cada arranque los datos guardados aparte (progreso, valoraciones,
+    /// categorías...) dejarían de encontrar su libro al volver a abrir la app.
+    private static let dune  = Book(id: UUID(uuidString: "6B1D2C4E-0001-4B00-8000-B00C0000D0E1")!,
+                                    title: "Dune", author: "Frank Herbert")
+    private static let junco = Book(id: UUID(uuidString: "6B1D2C4E-0002-4B00-8000-B00C0000D0E2")!,
+                                    title: "El infinito en un junco", author: "Irene Vallejo", status: .leyendo)
+    private static let klara = Book(id: UUID(uuidString: "6B1D2C4E-0003-4B00-8000-B00C0000D0E3")!,
+                                    title: "Klara y el Sol", author: "Kazuo Ishiguro", status: .terminado)
 
     /// Cada cambio en la lista (cambiar estado, añadir, borrar o editar en el detalle) se guarda.
     var books: [Book] = [BookListViewModel.dune, BookListViewModel.junco, BookListViewModel.klara] {
@@ -86,18 +92,25 @@ final class BookListViewModel {
     /// Pasa el libro al estado siguiente: Pendiente → Leyendo → Terminado → Pendiente.
     func advanceStatus(id: UUID) {
         guard let index = books.firstIndex(where: { $0.id == id }) else { return }
-        books[index].status = books[index].status.next
+        let oldStatus = books[index].status
+        books[index].status = oldStatus.next
+        PluginRegistry.shared.notifyStatusChanged(of: books[index], from: oldStatus)
     }
 
     func addBook() {
         books.append(Book(title: "Libro nuevo"))
     }
 
+    /// Borra un libro y sus datos. Los datos de F1, F2 y F4 los borra el ViewModel;
+    /// los de los plugins, cada plugin al recibir el aviso del registro.
     func removeBook(id: UUID) {
+        guard let book = book(id: id) else { return }
+        PluginRegistry.shared.notifyBookWillBeDeleted(book)
         books.removeAll { $0.id == id }
         progress.removeAll { $0.bookID == id }
         notes.removeAll { $0.bookID == id }
         reviews.removeAll { $0.bookID == id }
+        PluginRegistry.shared.notifyBookDidDelete(id: id)
     }
 
     /// El libro con ese id, si sigue en la lista.
@@ -106,9 +119,15 @@ final class BookListViewModel {
     }
 
     /// Sustituye el libro que tiene el mismo id (la usa el detalle al editar).
+    /// Core: el título nunca queda vacío; si cambia el estado, avisa a los plugins.
     func updateBook(_ book: Book) {
         guard let index = books.firstIndex(where: { $0.id == book.id }) else { return }
+        guard !book.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let oldStatus = books[index].status
         books[index] = book
+        if oldStatus != book.status {
+            PluginRegistry.shared.notifyStatusChanged(of: book, from: oldStatus)
+        }
     }
 
     /// El progreso de un libro, si ya tiene.

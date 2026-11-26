@@ -10,6 +10,8 @@ struct BookRowView: View {
     let showProgress: Bool
     var showRatings: Bool = true
     let advanceStatus: () -> Void
+    /// F3 Categorías: por ejemplo "Novela · Clásicos". nil si no hay o no se muestran.
+    var categoryText: String? = nil
 
     var body: some View {
         HStack {
@@ -36,6 +38,14 @@ struct BookRowView: View {
                             .foregroundColor(.orange)
                         Text(ratingText(average: average, count: reviewsCount))
                             .bookCaption(color: .orange)
+                    }
+                }
+                if let categoryText {
+                    HStack(spacing: 3) {
+                        Image(systemName: Category.systemImage)
+                            .foregroundColor(Category.color)
+                        Text(categoryText)
+                            .bookCaption(color: Category.color)
                     }
                 }
             }
