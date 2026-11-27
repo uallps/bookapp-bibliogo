@@ -3,7 +3,11 @@ import SwiftUI
 
 extension AuthorProfile {
     /// O5: icono de los autores (ajuste, detalle y filtro).
+#if !canImport(SwiftOpenUI)
     static let systemImage = "person.text.rectangle"
+#else
+    static let systemImage = "person.crop.circle"
+#endif
 
     /// Por ejemplo, "Estadounidense · nacido en 1920" (sin separador de miles en el año).
     var summaryText: String {
