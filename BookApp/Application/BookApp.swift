@@ -20,6 +20,10 @@ struct BookApp: App {
         // O5 Autores: fichas de autor y filtro por autor.
         PluginRegistry.shared.register(AuthorPlugin(config: config, library: viewModel))
 #endif
+#if Sagas
+        // O6 Sagas y series: libros agrupados en orden y cuál toca leer después.
+        PluginRegistry.shared.register(SagaPlugin(library: viewModel))
+#endif
         _config = State(wrappedValue: config)
         _viewModel = State(wrappedValue: viewModel)
     }
