@@ -16,9 +16,10 @@ struct BookApp: App {
         // F3 Categorías: plugin común, se registra siempre (sin trait).
         PluginRegistry.shared.register(CategoryPlugin(config: config))
         // Las originales se registran aquí, cada una dentro de su trait:
-        // #if Sagas
-        // PluginRegistry.shared.register(SagaPlugin(config: config, library: viewModel))
-        // #endif
+#if Autores
+        // O5 Autores: fichas de autor y filtro por autor.
+        PluginRegistry.shared.register(AuthorPlugin(config: config, library: viewModel))
+#endif
         _config = State(wrappedValue: config)
         _viewModel = State(wrappedValue: viewModel)
     }
