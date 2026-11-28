@@ -4,7 +4,6 @@ import SwiftUI
 /// O1 Sugerencia de próxima lectura: propone un libro pendiente según la estrategia XOR activa
 /// (aleatoria o por tiempo y extensión).
 struct NextReadingSuggestionView: View {
-    var viewModel: BookListViewModel
     var plugin: SuggestionPlugin
     @Environment(AppConfig.self) private var config
 
@@ -12,25 +11,12 @@ struct NextReadingSuggestionView: View {
     @Environment(\.colorScheme) private var colorScheme
 #endif
 
-    private var displayedSuggestion: BookSuggestion? {
-        if let current = plugin.currentSuggestion,
-           viewModel.books.contains(where: { $0.id == current.book.id && $0.status == .pendiente }) {
-            return current
-        }
-        return ActiveSuggestionStrategy.current.suggest(
-            from: viewModel.books,
-            progress: viewModel.progress,
-            criteria: plugin.criteria,
-            excluding: nil
-        )
-    }
-
     private var availableTimeBinding: Binding<AvailableTime> {
         Binding(
             get: { plugin.criteria.availableTime },
             set: { newValue in
                 plugin.criteria.availableTime = newValue
-                plugin.suggestNext(books: viewModel.books, progress: viewModel.progress, avoidCurrent: false)
+                plugin.suggestNext(avoidCurrent: false)
             }
         )
     }
@@ -40,7 +26,7 @@ struct NextReadingSuggestionView: View {
             get: { plugin.criteria.preferredLength },
             set: { newValue in
                 plugin.criteria.preferredLength = newValue
-                plugin.suggestNext(books: viewModel.books, progress: viewModel.progress, avoidCurrent: false)
+                plugin.suggestNext(avoidCurrent: false)
             }
         )
     }
@@ -67,7 +53,7 @@ struct NextReadingSuggestionView: View {
                         criteriaCard
                     }
 
-                    if let suggestion = displayedSuggestion {
+                    if let suggestion = plugin.displayedSuggestion {
                         suggestionCard(suggestion)
                     } else {
                         emptyPendingCard
@@ -233,7 +219,7 @@ struct NextReadingSuggestionView: View {
             HStack(spacing: 12) {
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        plugin.suggestNext(books: viewModel.books, progress: viewModel.progress)
+                        plugin.suggestNext()
                     }
                 } label: {
                     Label("Otra sugerencia", systemImage: "arrow.triangle.2.circlepath")
@@ -250,8 +236,7 @@ struct NextReadingSuggestionView: View {
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        viewModel.advanceStatus(id: suggestion.book.id)
-                        plugin.suggestNext(books: viewModel.books, progress: viewModel.progress, avoidCurrent: false)
+                        plugin.startReading(suggestion.book)
                     }
                 } label: {
                     Label("Empezar a leer", systemImage: "bookmark.fill")
@@ -321,7 +306,7 @@ struct NextReadingSuggestionView: View {
             }
 
             Section(header: Text("Sugerencia (\(plugin.strategyName))")) {
-                if let suggestion = displayedSuggestion {
+                if let suggestion = plugin.displayedSuggestion {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(suggestion.book.title)
                             .font(.headline)
@@ -341,11 +326,10 @@ struct NextReadingSuggestionView: View {
 
                     HStack(spacing: 12) {
                         Button("Otra sugerencia") {
-                            plugin.suggestNext(books: viewModel.books, progress: viewModel.progress)
+                            plugin.suggestNext()
                         }
                         Button("Empezar a leer") {
-                            viewModel.advanceStatus(id: suggestion.book.id)
-                            plugin.suggestNext(books: viewModel.books, progress: viewModel.progress, avoidCurrent: false)
+                            plugin.startReading(suggestion.book)
                         }
                     }
                 } else {
