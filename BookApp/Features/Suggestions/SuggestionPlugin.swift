@@ -44,19 +44,21 @@ final class SuggestionPlugin: DataPlugin, ViewPlugin {
     var strategyDescription: String { strategy.strategyDescription }
     var usesTimeAndLength: Bool { ActiveSuggestionStrategy.isTimeAndLength }
 
-    /// Sugerencia visible en pantalla: mantiene la actual mientras siga pendiente,
-    /// o calcula una nueva sin mutar el estado durante el renderizado.
+    /// Sugerencia visible en pantalla: devuelve únicamente `currentSuggestion` mientras
+    /// el libro siga pendiente (nunca recalcula durante el redibujado).
     var displayedSuggestion: BookSuggestion? {
-        if let current = currentSuggestion,
-           library.books.contains(where: { $0.id == current.book.id && $0.status == .pendiente }) {
-            return current
+        guard let current = currentSuggestion,
+              library.books.contains(where: { $0.id == current.book.id && $0.status == .pendiente }) else {
+            return nil
         }
-        return strategy.suggest(
-            from: library.books,
-            progress: library.progress,
-            criteria: criteria,
-            excluding: nil
-        )
+        return current
+    }
+
+    /// Calcula la sugerencia una sola vez si no hay ninguna válida (al entrar en la pantalla).
+    func ensureSuggestion() {
+        if displayedSuggestion == nil {
+            suggestNext(avoidCurrent: false)
+        }
     }
 
     /// Genera una nueva sugerencia (evitando repetir la actual cuando hay más de un pendiente).

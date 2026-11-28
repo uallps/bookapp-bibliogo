@@ -31,11 +31,37 @@ struct NextReadingSuggestionView: View {
         )
     }
 
+    private var availableTimeRawBinding: Binding<String> {
+        Binding(
+            get: { plugin.criteria.availableTime.rawValue },
+            set: { newValue in
+                if let parsed = AvailableTime(rawValue: newValue) {
+                    plugin.criteria.availableTime = parsed
+                    plugin.suggestNext(avoidCurrent: false)
+                }
+            }
+        )
+    }
+
+    private var preferredLengthRawBinding: Binding<String> {
+        Binding(
+            get: { plugin.criteria.preferredLength.rawValue },
+            set: { newValue in
+                if let parsed = PreferredLength(rawValue: newValue) {
+                    plugin.criteria.preferredLength = parsed
+                    plugin.suggestNext(avoidCurrent: false)
+                }
+            }
+        )
+    }
+
     var body: some View {
 #if !canImport(SwiftOpenUI)
         appleSuggestionBody
+            .onAppear { plugin.ensureSuggestion() }
 #else
         openUISuggestionBody
+            .onAppear { plugin.ensureSuggestion() }
 #endif
     }
 
@@ -292,14 +318,14 @@ struct NextReadingSuggestionView: View {
         Form {
             if plugin.usesTimeAndLength {
                 Section(header: Text("Tiempo y extensión")) {
-                    Picker("Tiempo disponible", selection: availableTimeBinding) {
+                    Picker("Tiempo disponible", selection: availableTimeRawBinding) {
                         ForEach(AvailableTime.allCases) { option in
-                            Text(option.rawValue).tag(option)
+                            Text(option.rawValue).tag(option.rawValue)
                         }
                     }
-                    Picker("Extensión preferida", selection: preferredLengthBinding) {
+                    Picker("Extensión preferida", selection: preferredLengthRawBinding) {
                         ForEach(PreferredLength.allCases) { option in
-                            Text(option.rawValue).tag(option)
+                            Text(option.rawValue).tag(option.rawValue)
                         }
                     }
                 }
