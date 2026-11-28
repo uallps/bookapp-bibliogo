@@ -17,7 +17,8 @@ let package = Package(
     // F1–F5 forman parte de todos los productos; las originales O1–O10 son opcionales.
     // En Xcode, el target «BookApp Completa» activa todas las originales.
     traits: [
-        .trait(name: "Sugerencia",   description: "O1: sugerencia de próxima lectura"),
+        .trait(name: "Sugerencia",          description: "O1: sugerencia de próxima lectura"),
+        .trait(name: "SugerenciaAleatoria", description: "O1a: sugerencia aleatoria (XOR con tiempo y extensión)", enabledTraits: ["Sugerencia"]),
         .trait(name: "Logros",       description: "O2: logros e insignias"),
         .trait(name: "Importacion",  description: "O3: importación de libros desde CSV"),
         .trait(name: "ResumenAnual", description: "O4: resumen del año lector"),

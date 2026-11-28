@@ -75,17 +75,21 @@ struct BookApp: App {
                     }
 
                     Section("Explorar") {
-                        Label("Biblioteca", systemImage: "books.vertical.fill")
-                            .tag("biblioteca" as String?)
-                        Label("Hábitos", systemImage: "leaf.fill")
-                            .tag("estadisticas" as String?)
-                        // Las pantallas propias de los plugins activos.
-                        ForEach(PluginRegistry.shared.screens(), id: \.tag) { screen in
-                            Label(screen.title, systemImage: screen.systemImage)
-                                .tag(screen.tag as String?)
+                        NavigationLink(value: "biblioteca") {
+                            Label("Biblioteca", systemImage: "books.vertical.fill")
                         }
-                        Label("Ajustes", systemImage: "slider.horizontal.3")
-                            .tag("ajustes" as String?)
+                        NavigationLink(value: "estadisticas") {
+                            Label("Hábitos", systemImage: "leaf.fill")
+                        }
+                        // Las pantallas propias de los plugins activos.
+                        ForEach(PluginRegistry.shared.screens()) { screen in
+                            NavigationLink(value: screen.tag) {
+                                Label(screen.title, systemImage: screen.systemImage)
+                            }
+                        }
+                        NavigationLink(value: "ajustes") {
+                            Label("Ajustes", systemImage: "slider.horizontal.3")
+                        }
                     }
                 }
                 .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 270)
@@ -106,7 +110,6 @@ struct BookApp: App {
                         NavigationStack {
                             screen.view
                         }
-                        .id(screen.tag)
                     } else {
                         BookListView(viewModel: viewModel)
                     }
@@ -124,7 +127,7 @@ struct BookApp: App {
                         Label("Estadísticas", systemImage: "checklist")
                     }
                     // Las pantallas propias de los plugins activos.
-                    ForEach(PluginRegistry.shared.screens(), id: \.tag) { screen in
+                    ForEach(PluginRegistry.shared.screens()) { screen in
                         NavigationLink(value: screen.tag) {
                             Label(screen.title, systemImage: screen.systemImage)
                         }
